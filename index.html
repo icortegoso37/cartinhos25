@@ -1492,12 +1492,11 @@
                     </div>
                 </div>
                 <div id="expensesCollapsible" style="display:none;">
-                    <div id="expensesList">
-                        <div class="empty-state">
-                            <div class="empty-state-icon">🛒</div>
-                            <p>Rexistra gastos</p>
-                        </div>
-                    </div>
+                   <div style="margin-bottom:15px;">
+                    <input type="text" class="form-input" id="expenseSearchInput" placeholder="🔍 Buscar gastos..." inputmode="text">
+                </div>
+                <div id="expenseResultsList"></div>
+                <div id="expensesList" style="display:none;"></div>
                 </div>
             </div>
         </section>
@@ -1663,6 +1662,13 @@
                     <h2 class="card-title">🏕️ Modo Subsistencia</h2>
                 </div>
                 <div id="subsistenceMode" style="padding:4px 0;"></div>
+            </div>
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">💎 Evolución do Patrimonio Neto</h2>
+                </div>
+                <div id="netWorthChartInfo" style="font-size:0.75rem;color:var(--text-muted);margin-bottom:8px;text-align:center;"></div>
+                <div class="chart-container" style="height:200px;"><canvas id="netWorthChart"></canvas></div>
             </div>
             <div class="card">
                 <div class="card-header">
@@ -2103,7 +2109,9 @@
                 <div class="form-row">
                     <div class="form-group"><label class="form-label">Cantidade</label><input type="number"
                             class="form-input" name="amount" placeholder="0.00" step="0.01" inputmode="decimal"
-                            required></div>
+                            required id="expenseAmountInput">
+                        <div id="expenseImpactPreview" style="display:none;margin-top:6px;padding:6px 10px;background:rgba(0,245,255,0.08);border-radius:8px;font-size:0.78rem;color:var(--text-secondary);"></div>
+                    </div>
                     <div class="form-group"><label class="form-label">Data</label><input type="date" class="form-input"
                             name="date" required></div>
                 </div>
@@ -2149,7 +2157,9 @@
                 <div class="form-row">
                     <div class="form-group"><label class="form-label">Cantidade</label><input type="number"
                             class="form-input" name="amount" placeholder="0.00" step="0.01" inputmode="decimal"
-                            required></div>
+                            required id="expenseAmountInput">
+                        <div id="expenseImpactPreview" style="display:none;margin-top:6px;padding:6px 10px;background:rgba(0,245,255,0.08);border-radius:8px;font-size:0.78rem;color:var(--text-secondary);"></div>
+                    </div>
                     <div class="form-group"><label class="form-label">Día do mes</label><input type="number"
                             class="form-input" name="dayOfMonth" min="1" max="31" placeholder="1-31" inputmode="numeric"
                             required></div>
@@ -2309,13 +2319,13 @@
                     if (!e || e.archived) return false;
                     const paidManually = e.paidPeriods && e.paidPeriods.includes(currentPeriodKey);
                     return !paidManually;
-                }).reduce((s, e) => s + (parseFloat(e.amount) || 0), 0);
+                }).reduce((s, e) => s + (parseFloat(e.variable ? getVariableRecurringEstimate(e) : e.amount) || 0), 0);
 
 
                 // Aforro diario total
                 const dailySavingsAmount = (data.savingsGoals || []).filter(g => g && g.active !== false).reduce((s, g) => s + (parseFloat(g.dailyAmount) || 0), 0);
                 // Engadir plan de devolución de débedas ao aforro diario
-                const dailyDebtRepayment = (data.debts || []).filter(d => d && d.direction === 'owe' && d.repaymentDate).reduce((s, d) => {
+                const dailyDebtRepayment = (data.debts || []).filter(d => d && d.direction === 'owe' && !d.repaymentPaused && (d.repaymentDate || d.repaymentPeriodAmount)).reduce((s, d) => {
                     const rem = (parseFloat(d.amount) || 0) - (parseFloat(d.paidAmount) || 0);
                     if (rem <= 0) return s;
                     const daysLeft = Math.ceil((new Date(d.repaymentDate) - new Date()) / (1000 * 60 * 60 * 24));
@@ -2470,11 +2480,19 @@
                         if (found.length >= 3) break;
                     }
                     if (found.length === 0) {
-                        return (data.expenses || []).filter(x => {
+                        // Intentar con mes actual
+                        const currentMonthTotal = (data.expenses || []).filter(x => {
                             if (!x || !x.date || x.extraordinary) return false;
                             const d = new Date(x.date); d.setHours(0, 0, 0, 0);
                             return d.getMonth() === today.getMonth() && d.getFullYear() === today.getFullYear();
                         }).reduce((s, x) => s + (parseFloat(x.amount) || 0), 0);
+                        if (currentMonthTotal > 0) return currentMonthTotal;
+                        // Fallback: media de todos os gastos históricos
+                        const allExpenses = (data.expenses || []).filter(x => x && x.date && !x.extraordinary);
+                        if (allExpenses.length > 0) {
+                            return r2(allExpenses.reduce((s, x) => s + (parseFloat(x.amount) || 0), 0) / allExpenses.length * 30);
+                        }
+                        return 0;
                     }
                     return r2(found.reduce((s, x) => s + x, 0) / found.length);
                 })();
@@ -3280,6 +3298,63 @@
             updateAllUI();
         }
 
+        function editRecurring(id) {
+            const rec = AppState.recurringExpenses.find(r => r.id === id);
+            if (!rec) return;
+            const cats = { vivienda: '🏠 Vivenda', servicios: '💡 Servizos', seguros: '🛡️ Seguros', subscricions: '📱 Subscricións', transporte: '🚗 Transporte', alimentacion: '🍎 Alimentación', outros: '📦 Outros' };
+            const overlay = document.createElement('div');
+            overlay.className = 'modal-overlay active';
+            overlay.id = 'editRecurringOverlay';
+            overlay.innerHTML = `
+                <div class="modal">
+                    <div class="modal-header">
+                        <h3 class="modal-title" style="color:var(--accent-cyan);">✎ Editar Gasto Fixo</h3>
+                        <button class="modal-close" onclick="document.getElementById('editRecurringOverlay').remove()">×</button>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Descrición</label>
+                        <input type="text" class="form-input" id="editRecDesc" value="${escapeHtml(rec.description)}">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Importe</label>
+                        <input type="number" class="form-input" id="editRecAmount" value="${rec.amount}" step="0.01" inputmode="decimal">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Día do mes</label>
+                        <input type="number" class="form-input" id="editRecDay" value="${rec.dayOfMonth}" min="1" max="31" inputmode="numeric">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Categoría</label>
+                        <select class="form-select" id="editRecCat">
+                            ${Object.entries(cats).map(([k, v]) => `<option value="${k}" ${rec.category === k ? 'selected' : ''}>${v}</option>`).join('')}
+                        </select>
+                    </div>
+                    <button class="btn btn-primary" style="width:100%;" onclick="saveEditRecurring(${id})">Gardar</button>
+                </div>`;
+            document.body.appendChild(overlay);
+            overlay.onclick = e => { if (e.target === overlay) overlay.remove(); };
+        }
+
+        async function saveEditRecurring(id) {
+            const rec = AppState.recurringExpenses.find(r => r.id === id);
+            if (!rec) return;
+            const desc = $('editRecDesc')?.value.trim();
+            const amount = parseFloat($('editRecAmount')?.value) || 0;
+            const day = parseInt($('editRecDay')?.value) || 1;
+            const cat = $('editRecCat')?.value;
+            if (!desc) { toast('Introduce unha descrición', 'error'); return; }
+            if (amount <= 0) { toast('Importe non válido', 'error'); return; }
+            rec.description = desc;
+            rec.amount = amount;
+            rec.dayOfMonth = Math.max(1, Math.min(31, day));
+            rec.category = cat;
+            await Database.update('recurringExpenses', rec);
+            AppState.recurringExpenses = AppState.recurringExpenses.map(r => r.id === id ? rec : r);
+            document.getElementById('editRecurringOverlay')?.remove();
+            updateAllUI();
+            toast('Gasto fixo actualizado ✓');
+        }
+
         async function editRecurringAmount(id) {
             const rec = AppState.recurringExpenses.find(r => r.id === id);
             if (!rec) return;
@@ -3486,7 +3561,7 @@
             travelMode: { active: false, name: '', budget: 0, startDate: null, endDate: null, dailyBudget: 0 },
             hourlyRate: 0
         };
-        let charts = { weekly: null, cashflow: null, realvsproject: null, periods: null, accounts: null, comparison: null, category: null, simulator: null, dashboard: null };        // CATEGORÍAS EDITABLES
+        let charts = { weekly: null, cashflow: null, realvsproject: null, periods: null, accounts: null, comparison: null, category: null, simulator: null, dashboard: null, netWorth: null };        // CATEGORÍAS EDITABLES
         const DEFAULT_EXPENSE_CATS = [
             { key: 'alimentacion', icon: '🍎', label: 'Alimentación' },
             { key: 'transporte', icon: '🚗', label: 'Transporte' },
@@ -3707,6 +3782,25 @@
                         const option = catSelect.querySelector(`option[value="${suggested}"]`);
                         if (option) catSelect.value = suggested;
                     }
+                });
+            }
+
+            // Impacto inmediato ao escribir importe
+            const amountInput = $('expenseAmountInput');
+            const impactPreview = $('expenseImpactPreview');
+            if (amountInput && impactPreview) {
+                amountInput.addEventListener('input', function() {
+                    const amount = parseFloat(this.value) || 0;
+                    if (amount <= 0) { impactPreview.style.display = 'none'; return; }
+                    const r = AppState.lastCalculation;
+                    if (!r) { impactPreview.style.display = 'none'; return; }
+                    const afterAmount = r2(r.availableToday - amount);
+                    const afterPerDay = r.periodInfo && r.periodInfo.remainingDays > 0
+                        ? r2((r.totalAvailable - amount) / r.periodInfo.remainingDays - r.breakdown.dailySavingsAmount)
+                        : 0;
+                    const color = afterAmount < 0 ? '#ff4757' : afterAmount < 10 ? 'var(--accent-yellow)' : 'var(--accent-cyan)';
+                    impactPreview.style.display = 'block';
+                    impactPreview.innerHTML = `Despois disto: <strong style="color:${color};">${fc(afterAmount)}</strong> dispoñibles · <strong style="color:${color};">${fc(afterPerDay)}</strong>/día`;
                 });
             }
         }
@@ -4633,6 +4727,16 @@
             });
         }
 
+        async function toggleDebtPlan(id) {
+            const debt = AppState.debts.find(d => d.id === id);
+            if (!debt) return;
+            debt.repaymentPaused = !debt.repaymentPaused;
+            await Database.update('debts', debt);
+            AppState.debts = AppState.debts.map(x => x.id === id ? debt : x);
+            updateAllUI();
+            toast(debt.repaymentPaused ? '⏸ Plan pausado' : '▶ Plan reanudado');
+        }
+
         async function saveDebtPlan(id, rem, totalDays) {
             const debt = AppState.debts.find(d => d.id === id);
             if (!debt) return;
@@ -4692,6 +4796,16 @@
                         planHtml = `<div style="font-size:0.72rem;color:var(--accent-cyan);margin-top:4px;">📅 ${fc(dailyAmount)}/día · ${periodsNeeded} período(s) restantes <button onclick="event.stopPropagation();setDebtRepaymentDate(${d.id})" style="background:none;border:none;color:var(--accent-cyan);font-size:0.72rem;cursor:pointer;padding:0;margin-left:6px;">✎</button></div>`;
                     } else {
                         planHtml = `<div style="font-size:0.72rem;color:var(--text-muted);margin-top:4px;"><button onclick="event.stopPropagation();setDebtRepaymentDate(${d.id})" style="background:none;border:none;color:var(--accent-cyan);font-size:0.72rem;cursor:pointer;padding:0;">+ Engadir plan de devolución</button></div>`;
+                    }
+                    // Botón pausar/reanudar si hay plan
+                    if ((d.repaymentDate || d.repaymentPeriodAmount) && planHtml) {
+                        const pauseBtn = d.repaymentPaused
+                            ? `<button onclick="event.stopPropagation();toggleDebtPlan(${d.id})" style="background:none;border:none;color:var(--accent-green);font-size:0.72rem;cursor:pointer;padding:0;margin-left:8px;">▶ Reanudar</button>`
+                            : `<button onclick="event.stopPropagation();toggleDebtPlan(${d.id})" style="background:none;border:none;color:var(--accent-yellow);font-size:0.72rem;cursor:pointer;padding:0;margin-left:8px;">⏸ Pausar</button>`;
+                        planHtml = planHtml.replace('</div>', pauseBtn + '</div>');
+                        if (d.repaymentPaused) {
+                            planHtml = `<div style="font-size:0.72rem;color:var(--accent-yellow);margin-top:4px;">⏸ Plan pausado <button onclick="event.stopPropagation();toggleDebtPlan(${d.id})" style="background:none;border:none;color:var(--accent-green);font-size:0.72rem;cursor:pointer;padding:0;margin-left:6px;">▶ Reanudar</button> <button onclick="event.stopPropagation();setDebtRepaymentDate(${d.id})" style="background:none;border:none;color:var(--accent-cyan);font-size:0.72rem;cursor:pointer;padding:0;margin-left:6px;">✎</button></div>`;
+                        }
                     }
                 }
 
@@ -4895,7 +5009,9 @@
             updateRealVsProjectChart();
             updateRule502030();
             updateSubsistenceMode();
-            updateLocationSummary(); updateComparisonChart();
+            updateNetWorthChart();
+            updateLocationSummary();
+             updateComparisonChart();
             updateAccountsChart();
             updateCategoryChart();
             updatePeriodsChart();
@@ -5192,6 +5308,49 @@
                 <div style="font-size:0.82rem;color:var(--text-secondary);text-align:center;">
                     ${pctPrima !== null ? `O ${pctPrima}% dos teus ingresos vai a gastos non esenciais` : `${fc(prima)} en gastos non esenciais este período`}
                 </div>`;
+        }
+
+        async function updateNetWorthChart() {
+            const ctx = $('netWorthChart'); if (!ctx) return;
+            const history = await Database.getAll('periodHistory');
+            if (!history.length) {
+                if ($('netWorthChartInfo')) $('netWorthChartInfo').textContent = 'Sen períodos pechados aínda';
+                return;
+            }
+            const sorted = [...history].sort((a, b) => new Date(a.closedAt) - new Date(b.closedAt)).slice(-8);
+            const labels = sorted.map(p => new Date(p.periodStart).toLocaleDateString('gl-ES', { day: '2-digit', month: 'short' }));
+            const netWorthData = sorted.map(p => {
+                const saldo = (p.accounts || []).reduce((s, a) => s + (parseFloat(a.balance) || 0), 0);
+                const deudas = (p.debts || []).filter(d => d && d.direction === 'owe').reduce((s, d) => s + Math.max(0, (parseFloat(d.amount) || 0) - (parseFloat(d.paidAmount) || 0)), 0);
+                return r2(saldo - deudas);
+            });
+            const trend = netWorthData.length >= 2 ? netWorthData[netWorthData.length - 1] - netWorthData[0] : 0;
+            if ($('netWorthChartInfo')) $('netWorthChartInfo').textContent = `Últimos ${sorted.length} períodos · Tendencia: ${trend >= 0 ? '📈 +' : '📉 '}${fc(trend)}`;
+            if (charts.netWorth) charts.netWorth.destroy();
+            charts.netWorth = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels,
+                    datasets: [{
+                        label: 'Patrimonio Neto',
+                        data: netWorthData,
+                        borderColor: '#a855f7',
+                        backgroundColor: 'rgba(168,85,247,0.15)',
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: netWorthData.map(v => v >= 0 ? '#39ff14' : '#ff4757'),
+                        pointRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { labels: { color: '#a0a0c0', font: { size: 10 } } } },
+                    scales: {
+                        x: { ticks: { color: '#606080', font: { size: 9 } }, grid: { color: 'rgba(255,110,199,0.1)' } },
+                        y: { ticks: { color: '#606080', font: { size: 9 } }, grid: { color: 'rgba(255,110,199,0.1)' } }
+                    }
+                }
+            });
         }
 
         function updateRule502030() {
@@ -6652,7 +6811,7 @@
             const availableWithoutSavings = r?.availableWithoutSavings || 0;
             const dailyAvailable = r?.breakdown?.availablePerDay || 0;
             const remainingDays = r?.periodInfo?.remainingDays || 1;
-            const totalAvailable = dailyAvailable * remainingDays;
+            const totalAvailable = r?.totalAvailable || 0;
             const daysConsumed = dailyAvailable > 0 ? amount / dailyAvailable : 0;
             const canAffordToday = amount <= availableToday;
             const canAffordPeriod = amount <= totalAvailable;
@@ -6664,8 +6823,8 @@
                 const target = new Date(g.targetDate);
                 const daysLeft = Math.ceil((target - today) / (1000 * 60 * 60 * 24));
                 const remaining = g.targetAmount - (g.currentAmount || 0);
-                const newDailyNeeded = daysLeft > 0 ? (remaining + amount) / daysLeft : 0;
-                return newDailyNeeded > (g.dailyAmount || 0) * 1.2;
+                const newDailyAvailable = r2(dailyAvailable - (amount / (remainingDays || 1)));
+                return newDailyAvailable < (g.dailyAmount || 0);
             });
             let icon, color, verdict;
             if (canAffordToday) { icon = '✅'; color = 'var(--accent-green)'; verdict = 'Podes permitircho hoxe sen problema'; }
@@ -7361,6 +7520,11 @@
         }
 
         async function loadData() {
+            // Verificar que IndexedDB segue accesible
+            if (!window.indexedDB) {
+                toast('⚠️ Base de datos non accesible. Reinicia a app.', 'error');
+                return;
+            }
             const d = await Database.getAllData();
             AppState.accounts = d.accounts || []; AppState.incomes = d.incomes || []; AppState.expenses = d.expenses || [];
             AppState.recurringExpenses = d.recurringExpenses || []; AppState.savingsGoals = d.savingsGoals || [];
@@ -7382,6 +7546,7 @@
             updateFrequentExpenses();
             updatePeriodInfo();
         }
+
         function showPiggySummary() {
             const r = FinancialEngine.calculateAvailableToday(AppState);
             if (!r) return;
@@ -7685,10 +7850,10 @@
                         return;
                     }
 
-                    // Edit recurring amount
+                    // Edit recurring
                     const editRecBtn = e.target.closest('[data-edit-recurring]');
                     if (editRecBtn) {
-                        await editRecurringAmount(parseInt(editRecBtn.dataset.editRecurring));
+                        editRecurring(parseInt(editRecBtn.dataset.editRecurring));
                         return;
                     }
 
@@ -7755,6 +7920,18 @@
                     toast(FinancialEngine.getSmartAdvice(r), r.availableToday < 0 ? 'warning' : 'info');
                 }, 1000);
 
+                // Recargar datos se a app volve do background (Safari iOS)
+                document.addEventListener('visibilitychange', async () => {
+                    if (document.visibilityState === 'visible') {
+                        if (!window.indexedDB) {
+                            toast('⚠️ Base de datos non accesible. Reinicia a app.', 'error');
+                            return;
+                        }
+                        await loadData();
+                        updateAllUI();
+                    }
+                });
+
             } catch (e) {
                 console.error('Init error:', e);
                 toast('Erro ao iniciar: ' + e.message, 'error');
@@ -7775,8 +7952,8 @@
         // Prevent iOS bounce scroll on fixed elements
         document.addEventListener('touchmove', function (e) {
             const target = e.target;
-            const isScrollable = target.closest('.notification-list, .modal-overlay, .section');
-            if (!isScrollable && target.closest('.notification-panel, .fab-container')) {
+            const isScrollable = target.closest('.notification-list, .modal-overlay, .section, .app-container');
+            if (!isScrollable && target.closest('.notification-panel, .fab-container, .nav-tabs')) {
                 e.preventDefault();
             }
         }, { passive: false });
@@ -7922,30 +8099,46 @@
 
         // GESTOS TÁCTILES - Swipe to delete
         let swipeStartX = 0;
+        let swipeStartY = 0;
         let swipeElement = null;
+        let swipeIsHorizontal = null;
 
         function setupSwipeDelete() {
             document.addEventListener('touchstart', e => {
-                // Se o tap é nun botón de acción, non activar swipe
                 if (e.target.closest('.list-item-actions')) return;
                 const target = e.target.closest('.list-item');
                 if (!target || target.closest('.modal')) return;
-                // Pechar calquera swipe aberto
                 if (swipeElement && swipeElement !== target) {
                     swipeElement.classList.remove('swiped');
                 }
                 swipeStartX = e.touches[0].pageX;
+                swipeStartY = e.touches[0].pageY;
                 swipeElement = target;
+                swipeIsHorizontal = null;
             }, { passive: true });
 
             document.addEventListener('touchmove', e => {
                 if (!swipeElement) return;
                 const currentX = e.touches[0].pageX;
-                const diff = currentX - swipeStartX;
-                if (diff < -10) {
-                    swipeElement.classList.add('swiped');
-                } else if (diff > 10) {
+                const currentY = e.touches[0].pageY;
+                const diffX = currentX - swipeStartX;
+                const diffY = currentY - swipeStartY;
+                // Determinar dirección ao primeiro movemento significativo
+                if (swipeIsHorizontal === null && (Math.abs(diffX) > 5 || Math.abs(diffY) > 5)) {
+                    swipeIsHorizontal = Math.abs(diffX) > Math.abs(diffY);
+                }
+                // Se o gesto é vertical, cancelar swipe
+                if (swipeIsHorizontal === false) {
                     swipeElement.classList.remove('swiped');
+                    swipeElement = null;
+                    return;
+                }
+                if (swipeIsHorizontal) {
+                    if (diffX < -10) {
+                        swipeElement.classList.add('swiped');
+                    } else if (diffX > 10) {
+                        swipeElement.classList.remove('swiped');
+                    }
                 }
             }, { passive: true });
 
