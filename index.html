@@ -2155,8 +2155,19 @@
                     <div class="form-group"><label class="form-label">Data</label><input type="date" class="form-input"
                             name="date" required></div>
                 </div>
-                <div class="form-group"><label class="form-label">Conta</label><select class="form-select"
+                              <div class="form-group"><label class="form-label">Conta</label><select class="form-select"
                         name="accountId" required></select></div>
+                <div class="form-group">
+                    <label class="form-label">Tipo</label>
+                    <div style="display:flex;gap:8px;">
+                        <button type="button" class="btn btn-primary" id="recurringTypeFijo" style="flex:1;"
+                            onclick="setRecurringType('fijo')">📄 Fijo</button>
+                        <button type="button" class="btn btn-secondary" id="recurringTypeSubscricion" style="flex:1;"
+                            onclick="setRecurringType('subscricion')">📱 Subscrición</button>
+                    </div>
+                    <input type="hidden" name="fixedType" value="fijo">
+                </div>
+
                 <div class="form-group">
                     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
                         <label class="form-label" style="margin-bottom:0;">Categoría</label>
@@ -3351,10 +3362,24 @@
             updateAllUI();
         }
 
+        function setRecurringType(type) {
+            const fijo = $('recurringTypeFijo');
+            const sub = $('recurringTypeSubscricion');
+            const input = document.querySelector('#recurringForm [name="fixedType"]');
+            if (type === 'fijo') {
+                fijo.className = 'btn btn-primary'; sub.className = 'btn btn-secondary';
+            } else {
+                fijo.className = 'btn btn-secondary'; sub.className = 'btn btn-primary';
+            }
+            if (input) input.value = type;
+        }
+
         function editRecurring(id) {
+
             const rec = AppState.recurringExpenses.find(r => r.id === id);
             if (!rec) return;
-            const cats = { vivienda: '🏠 Vivenda', servicios: '💡 Servizos', seguros: '🛡️ Seguros', subscricions: '📱 Subscricións', transporte: '🚗 Transporte', alimentacion: '🍎 Alimentación', outros: '📦 Outros' };
+                        const cats = { vivienda: '🏠 Vivenda', servicios: '💡 Servizos', seguros: '🛡️ Seguros', subscricions: '📱 Subscricións', transporte: '🚗 Transporte', alimentacion: '🍎 Alimentación', outros: '📦 Outros' };     
+                        const fixedType = rec.fixedType || 'fijo'; 
             const overlay = document.createElement('div');
             overlay.className = 'modal-overlay active';
             overlay.id = 'editRecurringOverlay';
@@ -3382,7 +3407,16 @@
                             ${Object.entries(cats).map(([k, v]) => `<option value="${k}" ${rec.category === k ? 'selected' : ''}>${v}</option>`).join('')}
                         </select>
                     </div>
+                                        <div class="form-group">
+                        <label class="form-label">Tipo</label>
+                        <div style="display:flex;gap:8px;">
+                            <button type="button" style="flex:1;" class="btn ${fixedType === 'fijo' ? 'btn-primary' : 'btn-secondary'}" onclick="this.parentElement.parentElement.querySelector('[name=fixedType]').value='fijo';this.className='btn btn-primary';this.nextElementSibling.className='btn btn-secondary';">📄 Fijo</button>
+                            <button type="button" style="flex:1;" class="btn ${fixedType === 'subscricion' ? 'btn-primary' : 'btn-secondary'}" onclick="this.parentElement.parentElement.querySelector('[name=fixedType]').value='subscricion';this.className='btn btn-primary';this.previousElementSibling.className='btn btn-secondary';">📱 Subscrición</button>
+                        </div>
+                        <input type="hidden" name="fixedType" value="${fixedType}">
+                    </div>
                     <button class="btn btn-primary" style="width:100%;" onclick="saveEditRecurring(${id})">Gardar</button>
+
                 </div>`;
             document.body.appendChild(overlay);
             overlay.onclick = e => { if (e.target === overlay) overlay.remove(); };
