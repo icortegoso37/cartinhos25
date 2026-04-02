@@ -20,7 +20,7 @@
         href="https://icortegoso37.github.io/lastedition/apple-touch-icon.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link>
+    <link
         href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Rajdhani:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap"
         rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -1489,14 +1489,22 @@
 
         <section class="section" id="section-accounts">
             <div class="card">
-                <div class="card-header">
+                <div class="card-header" style="cursor:pointer;"
+                    onclick="toggleCollapsible('accountsCollapsible', 'accountsChevron')">
                     <h2 class="card-title">🏦 Contas</h2>
-                    <button class="btn btn-primary" id="btnNewAccount">+ Nova</button>
+                    <div style="display:flex;gap:8px;align-items:center;">
+                        <button class="btn btn-primary" id="btnNewAccount"
+                            onclick="event.stopPropagation();openModal('accountModal')">+ Nova</button>
+                        <span id="accountsChevron"
+                            style="color:var(--accent-cyan);font-size:1.2rem;transition:transform 0.3s;">▼</span>
+                    </div>
                 </div>
-                <div id="accountsList">
-                    <div class="empty-state">
-                        <div class="empty-state-icon">🏦</div>
-                        <p>Engade a túa primeira conta</p>
+                <div id="accountsCollapsible">
+                    <div id="accountsList">
+                        <div class="empty-state">
+                            <div class="empty-state-icon">🏦</div>
+                            <p>Engade a túa primeira conta</p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -2155,7 +2163,7 @@
                     <div class="form-group"><label class="form-label">Data</label><input type="date" class="form-input"
                             name="date" required></div>
                 </div>
-                              <div class="form-group"><label class="form-label">Conta</label><select class="form-select"
+                <div class="form-group"><label class="form-label">Conta</label><select class="form-select"
                         name="accountId" required></select></div>
                 <div class="form-group">
                     <label class="form-label">Tipo</label>
@@ -2167,7 +2175,6 @@
                     </div>
                     <input type="hidden" name="fixedType" value="fijo">
                 </div>
-
                 <div class="form-group">
                     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
                         <label class="form-label" style="margin-bottom:0;">Categoría</label>
@@ -2217,6 +2224,16 @@
                 </div>
                 <div class="form-group"><label class="form-label">Conta</label><select class="form-select"
                         name="accountId" required></select></div>
+                <div class="form-group">
+                    <label class="form-label">Tipo</label>
+                    <div style="display:flex;gap:8px;">
+                        <button type="button" class="btn btn-primary" id="recurringTypeFijo" style="flex:1;"
+                            onclick="setRecurringType('fijo')">📄 Fijo</button>
+                        <button type="button" class="btn btn-secondary" id="recurringTypeSubscricion" style="flex:1;"
+                            onclick="setRecurringType('subscricion')">📱 Subscrición</button>
+                    </div>
+                    <input type="hidden" name="fixedType" value="fijo">
+                </div>
                 <div class="form-group">
                     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
                         <label class="form-label" style="margin-bottom:0;">Categoría</label>
@@ -3375,11 +3392,10 @@
         }
 
         function editRecurring(id) {
-
             const rec = AppState.recurringExpenses.find(r => r.id === id);
             if (!rec) return;
-                        const cats = { vivienda: '🏠 Vivenda', servicios: '💡 Servizos', seguros: '🛡️ Seguros', subscricions: '📱 Subscricións', transporte: '🚗 Transporte', alimentacion: '🍎 Alimentación', outros: '📦 Outros' };     
-                        const fixedType = rec.fixedType || 'fijo'; 
+            const cats = { vivienda: '🏠 Vivenda', servicios: '💡 Servizos', seguros: '🛡️ Seguros', subscricions: '📱 Subscricións', transporte: '🚗 Transporte', alimentacion: '🍎 Alimentación', outros: '📦 Outros' };
+            const fixedType = rec.fixedType || 'fijo';
             const overlay = document.createElement('div');
             overlay.className = 'modal-overlay active';
             overlay.id = 'editRecurringOverlay';
@@ -3407,7 +3423,7 @@
                             ${Object.entries(cats).map(([k, v]) => `<option value="${k}" ${rec.category === k ? 'selected' : ''}>${v}</option>`).join('')}
                         </select>
                     </div>
-                                        <div class="form-group">
+                    <div class="form-group">
                         <label class="form-label">Tipo</label>
                         <div style="display:flex;gap:8px;">
                             <button type="button" style="flex:1;" class="btn ${fixedType === 'fijo' ? 'btn-primary' : 'btn-secondary'}" onclick="this.parentElement.parentElement.querySelector('[name=fixedType]').value='fijo';this.className='btn btn-primary';this.nextElementSibling.className='btn btn-secondary';">📄 Fijo</button>
@@ -3416,7 +3432,6 @@
                         <input type="hidden" name="fixedType" value="${fixedType}">
                     </div>
                     <button class="btn btn-primary" style="width:100%;" onclick="saveEditRecurring(${id})">Gardar</button>
-
                 </div>`;
             document.body.appendChild(overlay);
             overlay.onclick = e => { if (e.target === overlay) overlay.remove(); };
@@ -3431,13 +3446,12 @@
             const cat = $('editRecCat')?.value;
             if (!desc) { toast('Introduce unha descrición', 'error'); return; }
             if (amount <= 0) { toast('Importe non válido', 'error'); return; }
-                       const fixedTypeVal = document.querySelector('#editRecurringOverlay [name="fixedType"]')?.value || 'fijo';
+            const fixedTypeVal = document.querySelector('#editRecurringOverlay [name="fixedType"]')?.value || 'fijo';
             rec.description = desc;
             rec.amount = amount;
             rec.dayOfMonth = Math.max(1, Math.min(31, day));
             rec.category = cat;
             rec.fixedType = fixedTypeVal;
-
             await Database.update('recurringExpenses', rec);
             AppState.recurringExpenses = AppState.recurringExpenses.map(r => r.id === id ? rec : r);
             document.getElementById('editRecurringOverlay')?.remove();
@@ -3754,6 +3768,7 @@
                 content.style.display = 'block';
                 if (chevron) chevron.style.transform = 'rotate(180deg)';
                 // Actualizar contido ao abrir
+                if (contentId === 'accountsCollapsible') updateAccountsList();
                 if (contentId === 'incomesCollapsible') updateIncomesList();
                 if (contentId === 'expensesCollapsible') updateExpensesList();
                 if (contentId === 'catsCollapsible') updateCategorySettingsUI();
@@ -4373,9 +4388,8 @@
             const archived = AppState.recurringExpenses.filter(r => r.archived).sort((a, b) => a.dayOfMonth - b.dayOfMonth);
             if (!AppState.recurringExpenses.length) { c.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🔄</div><p>Configura gastos fixos</p></div>'; return; }
 
-                       const facturas = active.filter(r => (r.fixedType || 'fijo') === 'fijo');
+            const facturas = active.filter(r => (r.fixedType || 'fijo') === 'fijo');
             const subscricions = active.filter(r => r.fixedType === 'subscricion');
-
 
             const renderItem = r => {
                 const paid = r.paidPeriods && r.paidPeriods.includes(currentPeriodKey);
@@ -4415,9 +4429,8 @@
             };
 
             let html = '';
-                  html += renderGroup('Facturas', '🧾', facturas, 'var(--accent-yellow)');
+            html += renderGroup('Facturas', '🧾', facturas, 'var(--accent-yellow)');
             html += renderGroup('Subscricións', '📱', subscricions, 'var(--accent-cyan)');
-
 
             if (archived.length) {
                 html += `<div style="margin-top:16px;">
