@@ -20,7 +20,7 @@
         href="https://icortegoso37.github.io/lastedition/apple-touch-icon.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
+    <link>
         href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Rajdhani:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap"
         rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -4373,11 +4373,9 @@
             const archived = AppState.recurringExpenses.filter(r => r.archived).sort((a, b) => a.dayOfMonth - b.dayOfMonth);
             if (!AppState.recurringExpenses.length) { c.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🔄</div><p>Configura gastos fixos</p></div>'; return; }
 
-            const facturasCats = ['vivienda', 'servicios', 'seguros', 'transporte', 'alimentacion'];
-            const subscCats = ['subscricions'];
-            const facturas = active.filter(r => facturasCats.includes(r.category));
-            const subscricions = active.filter(r => subscCats.includes(r.category));
-            const outros = active.filter(r => !facturasCats.includes(r.category) && !subscCats.includes(r.category));
+                       const facturas = active.filter(r => (r.fixedType || 'fijo') === 'fijo');
+            const subscricions = active.filter(r => r.fixedType === 'subscricion');
+
 
             const renderItem = r => {
                 const paid = r.paidPeriods && r.paidPeriods.includes(currentPeriodKey);
