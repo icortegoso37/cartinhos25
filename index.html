@@ -3431,10 +3431,13 @@
             const cat = $('editRecCat')?.value;
             if (!desc) { toast('Introduce unha descrición', 'error'); return; }
             if (amount <= 0) { toast('Importe non válido', 'error'); return; }
+                       const fixedTypeVal = document.querySelector('#editRecurringOverlay [name="fixedType"]')?.value || 'fijo';
             rec.description = desc;
             rec.amount = amount;
             rec.dayOfMonth = Math.max(1, Math.min(31, day));
             rec.category = cat;
+            rec.fixedType = fixedTypeVal;
+
             await Database.update('recurringExpenses', rec);
             AppState.recurringExpenses = AppState.recurringExpenses.map(r => r.id === id ? rec : r);
             document.getElementById('editRecurringOverlay')?.remove();
@@ -6278,7 +6281,7 @@
                 return;
             }
             const isVariable = $('recurringVariableCheckbox')?.classList.contains('checked') || false;
-            const data = { description: f.description.value, amount: parseAmount(f.amount.value) || 0, dayOfMonth: parseInt(f.dayOfMonth.value) || 1, category: f.category.value, accountId: accountId, variable: isVariable };
+            const data = { description: f.description.value, amount: parseAmount(f.amount.value) || 0, dayOfMonth: parseInt(f.dayOfMonth.value) || 1, category: f.category.value, accountId: accountId, variable: isVariable, fixedType: f.fixedType?.value || 'fijo' };
             const id = await Database.add('recurringExpenses', data);
             AppState.recurringExpenses.push({ ...data, id });
             closeModal('recurringModal'); updateAllUI(); runTests(); toast('Gasto fixo gardado ✓');
