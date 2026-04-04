@@ -2166,16 +2166,6 @@
                 <div class="form-group"><label class="form-label">Conta</label><select class="form-select"
                         name="accountId" required></select></div>
                 <div class="form-group">
-                    <label class="form-label">Tipo</label>
-                    <div style="display:flex;gap:8px;">
-                        <button type="button" class="btn btn-primary" id="recurringTypeFijo" style="flex:1;"
-                            onclick="setRecurringType('fijo')">📄 Fijo</button>
-                        <button type="button" class="btn btn-secondary" id="recurringTypeSubscricion" style="flex:1;"
-                            onclick="setRecurringType('subscricion')">📱 Subscrición</button>
-                    </div>
-                    <input type="hidden" name="fixedType" value="fijo">
-                </div>
-                <div class="form-group">
                     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
                         <label class="form-label" style="margin-bottom:0;">Categoría</label>
                         <button type="button" class="btn btn-secondary"
@@ -2215,8 +2205,7 @@
                 <div class="form-row">
                     <div class="form-group"><label class="form-label">Cantidade</label><input type="number"
                             class="form-input" name="amount" placeholder="0.00" step="0.01" inputmode="decimal"
-                            required id="expenseAmountInput">
-                        <div id="expenseImpactPreview" style="display:none;margin-top:6px;padding:6px 10px;background:rgba(0,245,255,0.08);border-radius:8px;font-size:0.78rem;color:var(--text-secondary);"></div>
+                            required>
                     </div>
                     <div class="form-group"><label class="form-label">Día do mes</label><input type="number"
                             class="form-input" name="dayOfMonth" min="1" max="31" placeholder="1-31" inputmode="numeric"
@@ -4038,8 +4027,8 @@
                     break;
                 case 'accounts':
                     updateAccountsList();
-                    updateIncomesList();
-                    updateExpensesList();
+                    if ($('incomesCollapsible')?.style.display === 'block') updateIncomesList();
+                    if ($('expensesCollapsible')?.style.display === 'block') updateExpensesList();
                     break;
                 case 'recurring':
                     updateRecurringList();
@@ -4965,8 +4954,8 @@
                     break;
                 case 'accounts':
                     updateAccountsList();
-                    updateIncomesList();
-                    updateExpensesList();
+                    if ($('incomesCollapsible')?.style.display === 'block') updateIncomesList();
+                    if ($('expensesCollapsible')?.style.display === 'block') updateExpensesList();
                     break;
                 case 'recurring':
                     updateRecurringList();
@@ -6060,8 +6049,35 @@
             const data = { name: f.name.value, balance: parseAmount(f.balance.value) || 0, accountType: f.accountType.value, forDailySpending: cb.classList.contains('checked') };
             if (editId) {
                 const acc = AppState.accounts.find(a => a.id === editId);
-                if (acc) { Object.assign(acc, data); await Database.update('accounts', acc); }
-                toast('Conta actualizada ✓');
+                if (acc) {
+                    const oldBalance = parseFloat(acc.balance) || 0;
+                    const newBalance = data.balance;
+                    const diff = r2(newBalance - oldBalance);
+                    Object.assign(acc, data);
+                    await Database.update('accounts', acc);
+                    AppState.accounts = AppState.accounts.map(a => a.id === editId ? acc : a);
+                    // Crear movemento de axuste se o saldo cambiou
+                    if (diff !== 0) {
+                        const adjustData = {
+                            description: `Axuste de conta: ${acc.name}`,
+                            amount: Math.abs(diff),
+                            date: new Date().toISOString().split('T')[0],
+                            accountId: editId,
+                            category: diff > 0 ? 'outros' : 'outros',
+                            extraordinary: true
+                        };
+                        if (diff > 0) {
+                            const id = await Database.add('incomes', { ...adjustData, incomeType: 'extra' });
+                            AppState.incomes.push({ ...adjustData, incomeType: 'extra', id });
+                        } else {
+                            const id = await Database.add('expenses', adjustData);
+                            AppState.expenses.push({ ...adjustData, id });
+                        }
+                        toast(`Conta actualizada ✓ — Axuste de ${fc(Math.abs(diff))} rexistrado`);
+                    } else {
+                        toast('Conta actualizada ✓');
+                    }
+                }
             } else {
                 const id = await Database.add('accounts', data);
                 AppState.accounts.push({ ...data, id });
