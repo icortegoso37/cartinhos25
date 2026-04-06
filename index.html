@@ -7726,10 +7726,49 @@
             const proximoFijo = (AppState.recurringExpenses || [])
                 .filter(rec => !rec.archived && !isRecurringPaidThisPeriod(rec))
                 .sort((a, b) => (a.dayOfMonth || 1) - (b.dayOfMonth || 1))[0];
-            const fixoInfo = proximoFijo ? ` · Próximo fixo: ${proximoFijo.description} (${fc(proximoFijo.amount)})` : '';
-            const diasRestantes = r.periodInfo ? r.periodInfo.remainingDays : '—';
+            const diasRestantes = r.periodInfo ? r.periodInfo.remainingDays : 1;
             const saldoTotal = fc(FinancialEngine.calculateTotalBalance(AppState.accounts));
-            toast(`💰 ${fc(r.availableToday)} dispoñible · Saldo: ${saldoTotal} · ${diasRestantes} días restantes${fixoInfo}`, 'info');
+
+            // Cálculo do efectivo semanal
+            const aforroTotal = r2((r.breakdown.dailySavingsAmount || 0) * diasRestantes);
+            const dispoRealGasto = r2(r.totalAvailable - aforroTotal);
+            const efectivoSemana = r2(dispoRealGasto / diasRestantes * Math.min(7, diasRestantes));
+
+            const overlay = document.createElement('div');
+            overlay.className = 'modal-overlay active';
+            overlay.id = 'piggySummaryOverlay';
+            overlay.innerHTML = `
+                <div class="modal" style="max-width:320px;">
+                    <div class="modal-header">
+                        <h3 class="modal-title">🐷 Resumo rápido</h3>
+                        <button class="modal-close" onclick="document.getElementById('piggySummaryOverlay').remove()">×</button>
+                    </div>
+                    <div style="display:flex;flex-direction:column;gap:12px;padding-top:4px;">
+                        <div style="display:flex;justify-content:space-between;align-items:center;">
+                            <span style="color:var(--text-secondary);font-size:0.9rem;">Dispoñible hoxe</span>
+                            <span style="color:var(--accent-cyan);font-weight:700;font-size:1.05rem;">${fc(r.availableToday)}</span>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;align-items:center;">
+                            <span style="color:var(--text-secondary);font-size:0.9rem;">Saldo total</span>
+                            <span style="color:var(--accent-green);font-weight:700;font-size:1.05rem;">${saldoTotal}</span>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;align-items:center;">
+                            <span style="color:var(--text-secondary);font-size:0.9rem;">Días restantes do período</span>
+                            <span style="color:var(--text-primary);font-weight:700;font-size:1.05rem;">${diasRestantes}</span>
+                        </div>
+                        ${proximoFijo ? `
+                        <div style="display:flex;justify-content:space-between;align-items:center;">
+                            <span style="color:var(--text-secondary);font-size:0.9rem;">Próximo fixo</span>
+                            <span style="color:var(--accent-yellow);font-weight:700;font-size:1.05rem;">${escapeHtml(proximoFijo.description)} (${fc(proximoFijo.amount)})</span>
+                        </div>` : ''}
+                        <div style="border-top:1px solid rgba(255,110,199,0.2);padding-top:12px;display:flex;justify-content:space-between;align-items:center;">
+                            <span style="color:var(--text-secondary);font-size:0.9rem;">💵 Efectivo para esta semana</span>
+                            <span style="color:var(--accent-pink);font-weight:700;font-size:1.15rem;">${fc(Math.max(0, efectivoSemana))}</span>
+                        </div>
+                    </div>
+                </div>`;
+            document.body.appendChild(overlay);
+            overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
         }
 
         function updatePeriodInfo() {
