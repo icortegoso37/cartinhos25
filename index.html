@@ -5834,11 +5834,12 @@
             }
         }
 
-        function updateAccountsChart() {
+                async function updateAccountsChart() {
             const ctx = $('accountsChart'); if (!ctx) return;
             const activeAccounts = AppState.accounts.filter(a => !a.archived);
             if (!activeAccounts.length) return;
             const now = getEffectiveDate(); now.setHours(0, 0, 0, 0);
+            const history = await Database.getAll('periodHistory');
             const labels = [];
             for (let i = 5; i >= 0; i--) {
                 const m = new Date(now.getFullYear(), now.getMonth() - i, 1);
@@ -5850,13 +5851,26 @@
                 for (let i = 5; i >= 0; i--) {
                     const m = new Date(now.getFullYear(), now.getMonth() - i, 1);
                     const mEnd = new Date(now.getFullYear(), now.getMonth() - i + 1, 0);
-                    const inflows = AppState.incomes
-                        .filter(x => x.accountId === acc.id && new Date(x.date) >= m && new Date(x.date) <= mEnd)
-                        .reduce((s, x) => s + (parseFloat(x.amount) || 0), 0);
-                    const outflows = AppState.expenses
-                        .filter(x => x.accountId === acc.id && new Date(x.date) >= m && new Date(x.date) <= mEnd)
-                        .reduce((s, x) => s + (parseFloat(x.amount) || 0), 0);
-                    data.push(r2(i === 0 ? acc.balance : acc.balance - inflows + outflows));
+                    // Buscar snapshot real dese mes en periodHistory
+                    const snap = history.find(h => {
+                        const hEnd = new Date(h.periodEnd);
+                        return hEnd >= m && hEnd <= mEnd;
+                    });
+                    if (i === 0) {
+                        data.push(r2(acc.balance));
+                    } else if (snap && snap.accounts) {
+                        const snapAcc = snap.accounts.find(a => a.id === acc.id);
+                        data.push(snapAcc ? r2(parseFloat(snapAcc.balance)) : null);
+                    } else {
+                        // Sin snapshot, estimar como antes
+                        const inflows = AppState.incomes
+                            .filter(x => x.accountId === acc.id && new Date(x.date) >= m && new Date(x.date) <= mEnd)
+                            .reduce((s, x) => s + (parseFloat(x.amount) || 0), 0);
+                        const outflows = AppState.expenses
+                            .filter(x => x.accountId === acc.id && new Date(x.date) >= m && new Date(x.date) <= mEnd)
+                            .reduce((s, x) => s + (parseFloat(x.amount) || 0), 0);
+                        data.push(r2(acc.balance - inflows + outflows));
+                    }
                 }
                 return {
                     label: acc.name,
@@ -5868,6 +5882,7 @@
                     pointBackgroundColor: colors[idx % colors.length]
                 };
             });
+
             if ($('accountsChartInfo')) $('accountsChartInfo').textContent = `${activeAccounts.length} conta(s) activa(s) · Últimos 6 meses`;
             if (charts.accounts) {
                 charts.accounts.data.labels = labels;
