@@ -1448,6 +1448,24 @@
             </div>
             <div class="card">
                 <div class="card-header">
+                    <h2 class="card-title">⚡ Velocidade de Gasto</h2>
+                </div>
+                <div id="velocidadeGasto" style="display:flex;justify-content:space-around;align-items:center;padding:8px 0;">
+                    <div style="text-align:center;">
+                        <div style="color:var(--text-muted);font-size:0.75rem;margin-bottom:4px;">Esta semana</div>
+                        <div id="vgEstaSemana" style="color:var(--accent-cyan);font-weight:700;font-size:1.1rem;">—</div>
+                        <div style="color:var(--text-muted);font-size:0.7rem;">€/día</div>
+                    </div>
+                    <div id="vgDiferenza" style="text-align:center;font-size:1.3rem;">—</div>
+                    <div style="text-align:center;">
+                        <div style="color:var(--text-muted);font-size:0.75rem;margin-bottom:4px;">Semana pasada</div>
+                        <div id="vgSemanaPasada" style="color:var(--text-secondary);font-weight:700;font-size:1.1rem;">—</div>
+                        <div style="color:var(--text-muted);font-size:0.7rem;">€/día</div>
+                    </div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header">
                     <h2 class="card-title">📊 Evolución</h2>
                 </div>
                 <div class="chart-container"><canvas id="dashboardChart"></canvas></div>
@@ -4139,7 +4157,33 @@
                 }
             }
             updatePeriodInfo();
-            const compactAvailable = $('compactAvailable');
+            // Velocidade de gasto
+            if ($('vgEstaSemana')) {
+                const _now = new Date(); _now.setHours(0, 0, 0, 0);
+                const _semanaStart = new Date(_now); _semanaStart.setDate(_now.getDate() - 6);
+                const _pasadaStart = new Date(_now); _pasadaStart.setDate(_now.getDate() - 13);
+                const _pasadaEnd = new Date(_now); _pasadaEnd.setDate(_now.getDate() - 7);
+                const _gastaEsta = r2((AppState.expenses || []).filter(e => {
+                    if (!e || !e.date) return false;
+                    const d = parseDate(e.date); d.setHours(0, 0, 0, 0);
+                    return d >= _semanaStart && d <= _now;
+                }).reduce((s, e) => s + (parseFloat(e.amount) || 0), 0) / 7);
+                const _gastaPasada = r2((AppState.expenses || []).filter(e => {
+                    if (!e || !e.date) return false;
+                    const d = parseDate(e.date); d.setHours(0, 0, 0, 0);
+                    return d >= _pasadaStart && d <= _pasadaEnd;
+                }).reduce((s, e) => s + (parseFloat(e.amount) || 0), 0) / 7);
+                $('vgEstaSemana').textContent = _gastaEsta.toFixed(2);
+                $('vgSemanaPasada').textContent = _gastaPasada.toFixed(2);
+                if (_gastaPasada > 0) {
+                    const _diff = r2((_gastaEsta - _gastaPasada) / _gastaPasada * 100);
+                    const _mejor = _gastaEsta <= _gastaPasada;
+                    $('vgDiferenza').textContent = (_mejor ? '📉' : '📈') + ' ' + (_diff > 0 ? '+' : '') + _diff + '%';
+                    $('vgDiferenza').style.color = _mejor ? 'var(--accent-green)' : 'var(--accent-pink)';
+                } else {
+                    $('vgDiferenza').textContent = '—';
+                }
+            }
             const compactWithoutSavings = $('compactWithoutSavings');
             if (compactAvailable) {
                 compactAvailable.textContent = fc(r.availableToday);
@@ -7728,6 +7772,12 @@
                 .sort((a, b) => (a.dayOfMonth || 1) - (b.dayOfMonth || 1))[0];
             const diasRestantes = r.periodInfo ? r.periodInfo.remainingDays : 1;
             const saldoTotal = fc(FinancialEngine.calculateTotalBalance(AppState.accounts));
+            const today = getEffectiveDate(); today.setHours(0, 0, 0, 0);
+            const gastadoHoxe = r2((AppState.expenses || []).filter(e => {
+                if (!e || !e.date) return false;
+                const d = parseDate(e.date); d.setHours(0, 0, 0, 0);
+                return d.getTime() === today.getTime();
+            }).reduce((s, e) => s + (parseFloat(e.amount) || 0), 0));
 
             // Cálculo do efectivo semanal
             const aforroTotal = r2((r.breakdown.dailySavingsAmount || 0) * diasRestantes);
@@ -7747,6 +7797,14 @@
                         <div style="display:flex;justify-content:space-between;align-items:center;">
                             <span style="color:var(--text-secondary);font-size:0.9rem;">Dispoñible hoxe</span>
                             <span style="color:var(--accent-cyan);font-weight:700;font-size:1.05rem;">${fc(r.availableToday)}</span>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;align-items:center;">
+                            <span style="color:var(--text-secondary);font-size:0.9rem;">Gastado hoxe</span>
+                            <span style="color:var(--accent-orange);font-weight:700;font-size:1.05rem;">${fc(gastadoHoxe)}</span>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;align-items:center;">
+                            <span style="color:var(--text-secondary);font-size:0.9rem;">Gastado hoxe</span>
+                            <span style="color:var(--accent-orange);font-weight:700;font-size:1.05rem;">${fc(gastadoHoxe)}</span>
                         </div>
                         <div style="display:flex;justify-content:space-between;align-items:center;">
                             <span style="color:var(--text-secondary);font-size:0.9rem;">Saldo total</span>
