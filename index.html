@@ -3351,7 +3351,57 @@
                     }
                 }
                 await addCalendarEvent(dateStr, `✓ ${rec.description} pagado`, 'expense', rec.amount);
-                toast('Marcado como pagado ✓');
+
+                // Crear gasto real na conta
+                const _crearGasto = async (accountId) => {
+                    const expense = {
+                        description: rec.description,
+                        amount: rec.amount,
+                        category: rec.category || 'outros',
+                        date: dateStr,
+                        accountId: accountId,
+                        notes: 'Rexistrado automaticamente ao marcar fixo como pagado'
+                    };
+                    const newId = await Database.add('expenses', expense);
+                    AppState.expenses.push({ ...expense, id: newId });
+                    const acc = AppState.accounts.find(a => a.id === accountId);
+                    if (acc) {
+                        acc.balance = r2(acc.balance - rec.amount);
+                        await Database.update('accounts', acc);
+                    }
+                };
+
+                if (rec.accountId && AppState.accounts.find(a => a.id === rec.accountId && !a.archived)) {
+                    await _crearGasto(rec.accountId);
+                    toast('Marcado como pagado e gasto rexistrado ✓');
+                } else {
+                    // Preguntar conta
+                    const _accounts = AppState.accounts.filter(a => !a.archived);
+                    const overlay = document.createElement('div');
+                    overlay.className = 'modal-overlay active';
+                    overlay.id = 'selectAccountOverlay';
+                    overlay.innerHTML = `
+                        <div class="modal" style="max-width:300px;">
+                            <div class="modal-header">
+                                <h3 class="modal-title">💳 Elixe a conta</h3>
+                                <button class="modal-close" onclick="document.getElementById('selectAccountOverlay').remove()">×</button>
+                            </div>
+                            <p style="color:var(--text-secondary);font-size:0.85rem;margin-bottom:12px;">¿En que conta rexistrar o pago de <strong>${escapeHtml(rec.description)}</strong> (${fc(rec.amount)})?</p>
+                            <div style="display:flex;flex-direction:column;gap:8px;">
+                                ${_accounts.map(a => `
+                                    <button class="btn btn-secondary" style="text-align:left;justify-content:space-between;display:flex;" onclick="(async()=>{document.getElementById('selectAccountOverlay').remove();await (${_crearGasto.toString()})(${a.id});updateAllUI();toast('Gasto rexistrado en ${escapeHtml(a.name)} ✓');})()">
+                                        <span>${escapeHtml(a.name)}</span>
+                                        <span style="color:var(--accent-cyan);">${fc(parseFloat(a.balance))}</span>
+                                    </button>`).join('')}
+                                <button class="btn" style="color:var(--text-muted);margin-top:4px;" onclick="document.getElementById('selectAccountOverlay').remove();updateAllUI();toast('Marcado como pagado ✓');">Sen rexistrar gasto</button>
+                            </div>
+                        </div>`;
+                    document.body.appendChild(overlay);
+                    overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+                    updateAllUI();
+                    return;
+                }
+
                 updateAllUI();
             }
         }
@@ -5102,7 +5152,39 @@
             const pa = $('patternAnalysis');
 
             // Alertas (configurables + anomalías) — urxente
+            const _rPtr = FinancialEngine.calculateAvailableToday(AppState);
+            const _ptrAlerts = [];
+            // Alerta día da semana
+            const _diasSemana = ['Domingo', 'Luns', 'Martes', 'Mércores', 'Xoves', 'Venres', 'Sábado'];
+            const _hoxeDia = getEffectiveDate().getDay();
+            const _gastosPorDia = [0, 0, 0, 0, 0, 0, 0];
+            const _conteoPorDia = [0, 0, 0, 0, 0, 0, 0];
+            (AppState.expenses || []).forEach(e => {
+                if (!e || !e.date) return;
+                const d = parseDate(e.date);
+                const dia = d.getDay();
+                _gastosPorDia[dia] += parseFloat(e.amount) || 0;
+                _conteoPorDia[dia]++;
+            });
+            const _mediasDia = _gastosPorDia.map((g, i) => _conteoPorDia[i] > 0 ? r2(g / _conteoPorDia[i]) : 0);
+            const _mediaGlobal = r2(_mediasDia.filter(m => m > 0).reduce((s, m) => s + m, 0) / _mediasDia.filter(m => m > 0).length);
+            if (_mediaGlobal > 0 && _mediasDia[_hoxeDia] > _mediaGlobal * 1.7) {
+                const _veces = (_mediasDia[_hoxeDia] / _mediaGlobal).toFixed(1);
+                _ptrAlerts.push({ icon: '📅', title: `Coidado, hoxe é ${_diasSemana[_hoxeDia]}`, description: `Os ${_diasSemana[_hoxeDia].toLowerCase()} gastas de media ${_veces}x máis que o resto da semana (${fc(_mediasDia[_hoxeDia])} vs ${fc(_mediaGlobal)}).`, amount: null, type: 'warning' });
+            }
+            if (_rPtr && _rPtr.periodInfo) {
+                const _fixosPendentes = (AppState.recurringExpenses || []).filter(e => e && !isRecurringPaidThisPeriod(e)).reduce((s, e) => s + (parseFloat(e.amount) || 0), 0);
+                const _aforrosPendentes = r2((_rPtr.breakdown.dailySavingsAmount || 0) * _rPtr.periodInfo.remainingDays);
+                const _marxe = r2(_rPtr.totalAvailable - _fixosPendentes - _aforrosPendentes);
+                const _diasMarxe = _rPtr.breakdown.availablePerDay > 0 ? Math.floor(_marxe / _rPtr.breakdown.availablePerDay) : 0;
+                if (_marxe <= 0) {
+                    _ptrAlerts.push({ icon: '🚨', title: 'Punto de non retorno superado', description: 'O saldo restante só cubre os gastos fixos e aforros pendentes. Sen marxe para gastos variables.', amount: null, type: 'danger' });
+                } else if (_diasMarxe <= 3) {
+                    _ptrAlerts.push({ icon: '🛑', title: 'Punto de non retorno próximo', description: `Só che quedan ${_diasMarxe} día(s) de marxe para gastos variables antes de comprometer os fixos e aforros.`, amount: null, type: 'warning' });
+                }
+            }
             const alertInsights = [
+                ..._ptrAlerts,
                 ...configurableAlerts.map(a => ({ icon: a.icon, title: a.title, description: a.text, amount: null, type: a.type })),
                 ...anomalies.map(a => ({ icon: a.icon, title: a.title, description: a.text, amount: null }))
             ].filter((insight, index, self) => index === self.findIndex(i => i.title === insight.title));
@@ -5124,7 +5206,10 @@
             if (patternInsights.length > 0) {
                 html += `<div style="font-family:'Orbitron',monospace;font-size:0.7rem;color:var(--accent-cyan);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:8px;margin-top:${alertInsights.length > 0 ? '16px' : '4px'};">🔍 Patróns</div>`;
                 html += patternInsights.slice(0, 6).map(p => {
-                    return `<div class="pattern-card"><div class="pattern-header"><span class="pattern-icon">${p.icon}</span><span class="pattern-title">${p.title}</span></div><div class="pattern-description">${p.description}${p.amount ? ` <span class="pattern-amount">${fc(p.amount)}</span>` : ''}</div></div>`;
+                    const btnFixo = p.suggestion === 'engadir como fixo' && p.amount
+                        ? `<button onclick="prefillRecurringFromPattern('${escapeHtml(p.description.match(/"([^"]+)"/)?.[1] || '')}', ${p.amount})" style="margin-top:8px;width:100%;padding:6px;background:rgba(0,245,255,0.1);border:1px solid var(--accent-cyan);border-radius:6px;color:var(--accent-cyan);font-size:0.78rem;cursor:pointer;">+ Engadir como gasto fixo</button>`
+                        : '';
+                    return `<div class="pattern-card"><div class="pattern-header"><span class="pattern-icon">${p.icon}</span><span class="pattern-title">${p.title}</span></div><div class="pattern-description">${p.description}${p.amount ? ` <span class="pattern-amount">${fc(p.amount)}</span>` : ''}</div>${btnFixo}</div>`;
                 }).join('');
             }
             if (!html) {
@@ -7778,6 +7863,13 @@
                 const d = parseDate(e.date); d.setHours(0, 0, 0, 0);
                 return d.getTime() === today.getTime();
             }).reduce((s, e) => s + (parseFloat(e.amount) || 0), 0));
+            const semanaStart = new Date(today); semanaStart.setDate(today.getDate() - 6);
+            const gastadoSemana = r2((AppState.expenses || []).filter(e => {
+                if (!e || !e.date) return false;
+                const d = parseDate(e.date); d.setHours(0, 0, 0, 0);
+                return d >= semanaStart && d <= today;
+            }).reduce((s, e) => s + (parseFloat(e.amount) || 0), 0));
+            const quedaHoxe = r2(r.breakdown.availablePerDay - gastadoHoxe);
 
             // Cálculo do efectivo semanal
             const aforroTotal = r2((r.breakdown.dailySavingsAmount || 0) * diasRestantes);
@@ -7807,6 +7899,14 @@
                             <span style="color:var(--accent-orange);font-weight:700;font-size:1.05rem;">${fc(gastadoHoxe)}</span>
                         </div>
                         <div style="display:flex;justify-content:space-between;align-items:center;">
+                            <span style="color:var(--text-secondary);font-size:0.9rem;">Queda para hoxe</span>
+                            <span style="color:${quedaHoxe < 0 ? 'var(--accent-pink)' : 'var(--accent-green)'};font-weight:700;font-size:1.05rem;">${fc(quedaHoxe)}</span>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;align-items:center;">
+                            <span style="color:var(--text-secondary);font-size:0.9rem;">Gastado esta semana</span>
+                            <span style="color:var(--accent-orange);font-weight:700;font-size:1.05rem;">${fc(gastadoSemana)}</span>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;align-items:center;">
                             <span style="color:var(--text-secondary);font-size:0.9rem;">Saldo total</span>
                             <span style="color:var(--accent-green);font-weight:700;font-size:1.05rem;">${saldoTotal}</span>
                         </div>
@@ -7827,6 +7927,16 @@
                 </div>`;
             document.body.appendChild(overlay);
             overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+        }
+
+        function prefillRecurringFromPattern(description, amount) {
+            openModal('recurringModal');
+            setTimeout(() => {
+                const form = document.getElementById('recurringForm');
+                if (!form) return;
+                form.description.value = description;
+                form.amount.value = amount;
+            }, 100);
         }
 
         function updatePeriodInfo() {
@@ -8639,5 +8749,4 @@
         });
     </script>
 </body>
-
 </html>
