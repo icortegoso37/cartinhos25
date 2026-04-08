@@ -1675,6 +1675,30 @@
                         <div class="info-label">Débeda Sostible</div>
                         <div class="info-value" id="kpiSustainableDebt" style="color:var(--accent-yellow);">—</div>
                     </div>
+                    <div class="info-item">
+                        <div class="info-label">Presión Período</div>
+                        <div class="info-value" id="kpiPeriodPressure" style="color:var(--accent-yellow);">—</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Burn Rate/día</div>
+                        <div class="info-value" id="kpiBurnRate" style="color:var(--accent-pink);">—</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Días Respiro</div>
+                        <div class="info-value" id="kpiBreathingDays" style="color:var(--accent-cyan);">—</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Morte Financeira</div>
+                        <div class="info-value" id="kpiFinancialDeath" style="color:var(--accent-pink);">—</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Gasto Consciente</div>
+                        <div class="info-value" id="kpiConsciousSpend" style="color:var(--accent-purple);">—</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Inflación Persoal</div>
+                        <div class="info-value" id="kpiPersonalInflation" style="color:var(--accent-yellow);">—</div>
+                    </div>
                 </div>
             </div>
             <div class="card">
@@ -3117,10 +3141,27 @@
                 if (yaEsFixo) return;
                 const avgAmount = r2(exps.reduce((s, e) => s + (parseFloat(e.amount) || 0), 0) / exps.length);
                 const totalAmount = r2(exps.reduce((s, e) => s + (parseFloat(e.amount) || 0), 0));
+                // Comparar co mesmo gasto en períodos anteriores para calcular % subida
+                let trendText = '';
+                const sortedPH = (AppState.periodHistory || []).sort((a, b) => new Date(b.closedAt) - new Date(a.closedAt)).slice(0, 3);
+                if (sortedPH.length >= 2) {
+                    const prevTotals = sortedPH.map(ph =>
+                        (ph.expenses || []).filter(e => e && e.description && e.description.toLowerCase().trim() === desc)
+                        .reduce((s, e) => s + (parseFloat(e.amount) || 0), 0)
+                    ).filter(t => t > 0);
+                    if (prevTotals.length >= 1) {
+                        const prevAvg = r2(prevTotals.reduce((a, b) => a + b, 0) / prevTotals.length);
+                        if (prevAvg > 0) {
+                            const pct = r2((totalAmount - prevAvg) / prevAvg * 100);
+                            if (pct > 5) trendText = ` 📈 +${pct.toFixed(0)}% vs períodos anteriores.`;
+                            else if (pct < -5) trendText = ` 📉 ${pct.toFixed(0)}% vs períodos anteriores.`;
+                        }
+                    }
+                }
                 patterns.push({
                     icon: '🧠',
                     title: 'Gasto habituado detectado',
-                    description: `"${exps[0].description}" apareceu ${exps.length} veces este período (${fc(totalAmount)} en total, media ${fc(avgAmount)}). Un gasto que xa non cuestionas.`,
+                    description: `"${exps[0].description}" apareceu ${exps.length} veces este período (${fc(totalAmount)} en total, media ${fc(avgAmount)}). Un gasto que xa non cuestionas.${trendText}`,
                     amount: totalAmount
                 });
             });
@@ -4468,6 +4509,121 @@
                 elDS.style.color = deudaSostible > 0 ? 'var(--accent-yellow)' : 'var(--accent-pink)';
                 elDS.parentElement.querySelector('.info-label').title = '(Ingresos − fixos − media variables 3m) × 0.4 = capacidade máxima de débeda sostible';
             }
+
+            // F1. ÍNDICE DE PRESIÓN DE PERÍODO (IPP)
+            // committedRecurring xa está calculado no motor como fixos pendentes do período
+            const ipp = periodIngresos > 0 ? r2(r.breakdown.committedRecurring / periodIngresos * 100) : null;
+            const elIPP = $('kpiPeriodPressure');
+            if (elIPP) {
+                elIPP.textContent = ipp !== null ? ipp.toFixed(1) + '%' : '—';
+                elIPP.style.color = ipp === null ? 'var(--accent-yellow)' : ipp > 70 ? '#ff4757' : ipp > 50 ? 'var(--accent-yellow)' : 'var(--accent-green)';
+                elIPP.parentElement.querySelector('.info-label').title = 'Fixos comprometidos / ingresos período. >70% = modo subsistencia';
+                if (ipp !== null && ipp > 70) elIPP.parentElement.querySelector('.info-label').textContent = '⚠️ Presión Período';
+                else if (elIPP.parentElement.querySelector('.info-label').textContent.startsWith('⚠️')) elIPP.parentElement.querySelector('.info-label').textContent = 'Presión Período';
+            }
+
+            // F2. BURN RATE DIARIO (gasto variable real por día no período)
+            const burnRate = r.periodInfo && r.periodInfo.dayInPeriod > 0
+                ? r2(s.periodExpenses / r.periodInfo.dayInPeriod)
+                : null;
+            const elBR = $('kpiBurnRate');
+            if (elBR) {
+                elBR.textContent = burnRate !== null ? fc(burnRate) + '/día' : '—';
+                elBR.style.color = burnRate !== null && r.breakdown.availablePerDay > 0 && burnRate > r.breakdown.availablePerDay ? '#ff4757' : 'var(--accent-pink)';
+                elBR.parentElement.querySelector('.info-label').title = 'Gasto variable medio por día no período actual';
+            }
+
+            // F3. DÍAS DE RESPIRO
+            // Cantos días podes seguir ao ritmo actual antes de esgotar o dispoñible
+            const breathingDays = burnRate && burnRate > 0 && r.availableToday > 0
+                ? Math.floor(r.availableToday / burnRate)
+                : burnRate && burnRate > 0 && r.totalAvailable > 0
+                ? Math.floor(r.totalAvailable / burnRate)
+                : null;
+            const elBD = $('kpiBreathingDays');
+            if (elBD) {
+                elBD.textContent = breathingDays !== null ? breathingDays + ' días' : '—';
+                elBD.style.color = breathingDays === null ? 'var(--accent-cyan)' : breathingDays < 3 ? '#ff4757' : breathingDays < 7 ? 'var(--accent-yellow)' : 'var(--accent-cyan)';
+                elBD.parentElement.querySelector('.info-label').title = 'Días que aguantas ao ritmo de gasto variable actual';
+            }
+
+            // F5. RATIO GASTO CONSCIENTE VS AUTOMÁTICO
+            // Canto do teu diñeiro sae de decisións activas vs compromisos pasivos
+            const totalAutomatico = r.breakdown.committedRecurring +
+                (AppState.debts || []).filter(d => d && d.direction === 'owe' && !d.repaymentPaused && d.repaymentDate)
+                .reduce((s, d) => {
+                    const rem = (parseFloat(d.amount) || 0) - (parseFloat(d.paidAmount) || 0);
+                    if (rem <= 0) return s;
+                    const daysLeft = Math.ceil((new Date(d.repaymentDate) - new Date()) / (1000 * 60 * 60 * 24));
+                    return daysLeft > 0 ? s + r2(rem / daysLeft * (r.periodInfo?.totalDays || 30)) : s;
+                }, 0);
+            const totalConsciente = s.periodExpenses;
+            const totalFluxo = totalConsciente + totalAutomatico;
+            const ratioConsciente = totalFluxo > 0 ? r2(totalConsciente / totalFluxo * 100) : null;
+            const elCS = $('kpiConsciousSpend');
+            if (elCS) {
+                elCS.textContent = ratioConsciente !== null ? ratioConsciente.toFixed(1) + '%' : '—';
+                elCS.style.color = ratioConsciente === null ? 'var(--accent-purple)' : ratioConsciente < 20 ? '#ff4757' : ratioConsciente < 40 ? 'var(--accent-yellow)' : 'var(--accent-purple)';
+                elCS.parentElement.querySelector('.info-label').title = '% do fluxo total que sae de decisións activas (variables) vs compromisos automáticos (fixos + débedas)';
+            }
+
+            // F10. INFLACIÓN PERSOAL COMO KPI FORMAL
+            // Compara gasto por categoría neste período vs mesmo período do ano anterior
+            // Fallback: se non hai periodHistory, compara mes actual vs mes do ano pasado en expenses
+            const elPI = $('kpiPersonalInflation');
+            if (elPI) {
+                let inflationPct = null;
+                const sortedPH = (AppState.periodHistory || []).sort((a, b) => new Date(a.closedAt) - new Date(b.closedAt));
+                if (sortedPH.length >= 6) {
+                    // Tomar os últimos 3 períodos vs os 3 anteriores a eses
+                    const recent3 = sortedPH.slice(-3);
+                    const prev3 = sortedPH.slice(-6, -3);
+                    const recentTotal = r2(recent3.reduce((s, p) => s + (parseFloat(p.totalExpenses) || 0), 0) / 3);
+                    const prevTotal = r2(prev3.reduce((s, p) => s + (parseFloat(p.totalExpenses) || 0), 0) / 3);
+                    if (prevTotal > 0) inflationPct = r2((recentTotal - prevTotal) / prevTotal * 100);
+                } else {
+                    // Fallback: mes calendario actual vs mesmo mes do ano pasado
+                    const now2 = getEffectiveDate();
+                    const cm = now2.getMonth(), cy = now2.getFullYear();
+                    const thisMonthTotal = (AppState.expenses || []).filter(e => {
+                        if (!e || !e.date || e.extraordinary) return false;
+                        const d = parseDate(e.date); d.setHours(0, 0, 0, 0);
+                        return d.getMonth() === cm && d.getFullYear() === cy;
+                    }).reduce((s, e) => s + (parseFloat(e.amount) || 0), 0);
+                    const lastYearTotal = (AppState.expenses || []).filter(e => {
+                        if (!e || !e.date || e.extraordinary) return false;
+                        const d = parseDate(e.date); d.setHours(0, 0, 0, 0);
+                        return d.getMonth() === cm && d.getFullYear() === cy - 1;
+                    }).reduce((s, e) => s + (parseFloat(e.amount) || 0), 0);
+                    if (lastYearTotal > 0) inflationPct = r2((thisMonthTotal - lastYearTotal) / lastYearTotal * 100);
+                }
+                if (inflationPct !== null) {
+                    elPI.textContent = (inflationPct >= 0 ? '+' : '') + inflationPct.toFixed(1) + '%';
+                    elPI.style.color = inflationPct > 10 ? '#ff4757' : inflationPct > 3 ? 'var(--accent-yellow)' : inflationPct < 0 ? 'var(--accent-green)' : 'var(--accent-cyan)';
+                    elPI.parentElement.querySelector('.info-label').title = sortedPH.length >= 6
+                        ? 'Variación do gasto medio nos últimos 3 períodos vs os 3 anteriores'
+                        : 'Variación do gasto vs mesmo mes do ano pasado (fallback — necesítanse 6+ períodos para cálculo preciso)';
+                } else {
+                    elPI.textContent = '—';
+                    elPI.parentElement.querySelector('.info-label').title = 'Necesítanse máis datos históricos';
+                }
+            }
+
+            // F7. FECHA DE MORTE FINANCEIRA
+            // Data exacta en que chegas a €0 ao ritmo actual sen novos ingresos
+            const elFD = $('kpiFinancialDeath');
+            if (elFD) {
+                if (breathingDays !== null && breathingDays > 0) {
+                    const deathDate = new Date();
+                    deathDate.setDate(deathDate.getDate() + breathingDays);
+                    const deathStr = deathDate.toLocaleDateString('gl-ES', { day: 'numeric', month: 'short', year: 'numeric' });
+                    elFD.textContent = deathStr;
+                    elFD.style.color = breathingDays < 7 ? '#ff4757' : breathingDays < 14 ? 'var(--accent-yellow)' : 'var(--accent-pink)';
+                    elFD.parentElement.querySelector('.info-label').title = 'Data en que chegas a €0 ao ritmo actual sen novos ingresos';
+                } else {
+                    elFD.textContent = '—';
+                }
+            }
         }
 
         function updateAccountsList() {
@@ -4555,6 +4711,7 @@
                     <div class="list-item-info">
                         <div class="list-item-name">${escapeHtml(r.description)}${r.variable ? ' <span style="font-size:0.7rem;color:var(--accent-cyan);background:rgba(0,245,255,0.1);padding:1px 6px;border-radius:10px;">~variable</span>' : ''}</div>
                         <div class="list-item-details">${dayLabel} · ${accName} · ${cats[r.category] || '📦'} · ${paid ? '✓ Pagado' : '○ Pendente'}${r.variable ? ` · est. ${fc(getVariableRecurringEstimate(r))}` : ''}</div>
+                        <div style="font-size:0.65rem;color:var(--text-muted);margin-top:2px;">💸 ${fc(r2((r.variable ? getVariableRecurringEstimate(r) : r.amount) * 12))}/ano · ${fc(r2((r.variable ? getVariableRecurringEstimate(r) : r.amount) * 60))} en 5 anos</div>
                     </div>
                     <div class="list-item-amount expense">-${fc(r.variable ? getVariableRecurringEstimate(r) : r.amount)}</div>
                     <div class="list-item-actions">
@@ -5078,6 +5235,26 @@
                 } else if (!isCompleted && g.targetDate) {
                     roadmapHtml = `<div style="margin-top:6px;font-size:0.75rem;color:var(--text-muted);">🗓️ Sen aportación diaria definida</div>`;
                 }
+
+                // F8: Progreso de ritmo — vas ao X% do ritmo necesario?
+                let rhythmHtml = '';
+                if (!isCompleted && !g.paused && g.targetDate && g.targetAmount > 0) {
+                    const targetDate = new Date(g.targetDate); targetDate.setHours(23, 59, 59, 999);
+                    const daysRemaining = Math.max(1, Math.ceil((targetDate - today) / (1000 * 60 * 60 * 24)));
+                    const remaining = g.targetAmount - (g.currentAmount || 0);
+                    const requiredDaily = remaining > 0 ? r2(remaining / daysRemaining) : 0;
+                    const actualDaily = parseFloat(g.dailyAmount) || 0;
+                    if (requiredDaily > 0 && actualDaily > 0) {
+                        const rhythmPct = Math.min(200, r2(actualDaily / requiredDaily * 100));
+                        const rhythmColor = rhythmPct >= 100 ? 'var(--accent-green)' : rhythmPct >= 70 ? 'var(--accent-yellow)' : '#ff4757';
+                        const rhythmLabel = rhythmPct >= 100 ? '✓ No ritmo' : rhythmPct >= 70 ? '⚠ Lixeiramente por baixo' : '✗ Ritmo insuficiente';
+                        rhythmHtml = `<div style="margin-top:5px;font-size:0.72rem;display:flex;justify-content:space-between;align-items:center;">
+                            <span style="color:var(--text-muted);">Ritmo: <strong style="color:${rhythmColor};">${rhythmPct.toFixed(0)}%</strong> do necesario (${fc(requiredDaily)}/día)</span>
+                            <span style="color:${rhythmColor};font-size:0.68rem;">${rhythmLabel}</span>
+                        </div>`;
+                    }
+                }
+
                 return `<div class="list-item" style="flex-direction:column;align-items:stretch;border-left-color:${borderColor}">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
                 <div class="list-item-info">
@@ -5101,6 +5278,7 @@
                 <div class="progress-fill ${pc}" style="width:${Math.min(p, 100)}%"></div>
             </div>
             ${roadmapHtml}
+            ${rhythmHtml}
         </div>`;
             }).join('');
         }
@@ -7583,6 +7761,55 @@ const _diasMarxe = _availablePerDayFresh > 0 ? Math.floor(_marxe / _availablePer
             else if (canAffordPeriod) { icon = '🟠'; color = 'var(--accent-orange)'; verdict = 'Podes, pero afectaría aos próximos días'; }
             else { icon = '🔴'; color = '#ff4757'; verdict = 'Non é recomendable agora mesmo'; }
 
+            // F13: Cálculos novos para Modo Decisión ampliado
+            // 1. Días de respiración que quita este gasto
+            const burnRateNow = r?.periodInfo?.dayInPeriod > 0
+                ? r2((AppState.expenses || []).filter(e => {
+                    if (!e || !e.date || e.extraordinary) return false;
+                    const d = parseDate(e.date); d.setHours(0,0,0,0);
+                    return d >= r.periodInfo.periodStart && d <= r.periodInfo.today;
+                }).reduce((s, e) => s + (parseFloat(e.amount) || 0), 0) / r.periodInfo.dayInPeriod)
+                : 0;
+            const breathingNow = burnRateNow > 0 ? Math.floor(availableToday / burnRateNow) : null;
+            const breathingAfter = burnRateNow > 0 && afterPeriod >= 0 ? Math.floor(newDailyAvailable / burnRateNow) : null;
+            const breathingLost = breathingNow !== null && breathingAfter !== null ? breathingNow - breathingAfter : null;
+
+            // 2. % do marxe libre que consume
+            const marginPct = totalAvailable > 0 ? r2(amount / totalAvailable * 100) : null;
+
+            // 3. Períodos para recuperar (cantos períodos tardarías en aforrar este importe ao ritmo actual)
+            const avgSavingsPerPeriod = (() => {
+                const ph = (AppState.periodHistory || []).slice(-3);
+                if (ph.length === 0) return 0;
+                const avgIncome = r2(ph.reduce((s, p) => s + (parseFloat(p.totalIncomes) || 0), 0) / ph.length);
+                const avgExpense = r2(ph.reduce((s, p) => s + (parseFloat(p.totalExpenses) || 0) + (parseFloat(p.totalFixed) || 0), 0) / ph.length);
+                return Math.max(0, avgIncome - avgExpense);
+            })();
+            const periodsToRecover = avgSavingsPerPeriod > 0 ? r2(amount / avgSavingsPerPeriod) : null;
+
+            // 4. Rompe patrón? Comparar co gasto habitual nesa categoría
+            const categoryInput = $('affordCategory')?.value || null;
+            let patternBreakHtml = '';
+            if (categoryInput && AppState.expenses.length >= 5) {
+                const { periodStart } = r.periodInfo || {};
+                const catSpentThisPeriod = periodStart ? (AppState.expenses || []).filter(e => {
+                    if (!e || !e.date || e.category !== categoryInput || e.extraordinary) return false;
+                    const d = parseDate(e.date); d.setHours(0,0,0,0);
+                    return d >= periodStart;
+                }).reduce((s, e) => s + (parseFloat(e.amount) || 0), 0) : 0;
+                const ph = (AppState.periodHistory || []).slice(-3);
+                if (ph.length >= 2) {
+                    const avgCatPeriod = r2(ph.reduce((s, p) => {
+                        const t = (p.expenses || []).filter(e => e && e.category === categoryInput && !e.extraordinary).reduce((a, e) => a + (parseFloat(e.amount) || 0), 0);
+                        return s + t;
+                    }, 0) / ph.length);
+                    if (avgCatPeriod > 0 && (catSpentThisPeriod + amount) > avgCatPeriod * 1.3) {
+                        const pct = r2((catSpentThisPeriod + amount) / avgCatPeriod * 100 - 100);
+                        patternBreakHtml = `<div style="margin-top:6px;padding:8px;background:rgba(255,217,61,0.1);border-radius:8px;font-size:0.8rem;color:var(--accent-yellow);">🔔 Romperías o teu patrón habitual nesta categoría (+${pct.toFixed(0)}% sobre a túa media)</div>`;
+                    }
+                }
+            }
+
             $('affordResult').style.display = 'block';
             $('affordResult').innerHTML = `
                 <div style="text-align:center;margin-bottom:12px;">
@@ -7590,7 +7817,7 @@ const _diasMarxe = _availablePerDayFresh > 0 ? Math.floor(_marxe / _availablePer
                     <div style="font-family:'Orbitron',monospace;font-size:0.9rem;color:${color};margin-top:6px;">${verdict}</div>
                 </div>
                 <div style="display:grid;gap:8px;">
-                                        <div style="display:flex;justify-content:space-between;font-size:0.85rem;">
+                    <div style="display:flex;justify-content:space-between;font-size:0.85rem;">
                         <span style="color:var(--text-secondary);">Quedaríache no período</span>
                         <span style="font-family:'Orbitron',monospace;color:${afterPeriod >= 0 ? 'var(--accent-green)' : '#ff4757'};">${fc(afterPeriod)}</span>
                     </div>
@@ -7602,11 +7829,23 @@ const _diasMarxe = _availablePerDayFresh > 0 ? Math.floor(_marxe / _availablePer
                         <span style="color:var(--text-secondary);">Días de marxe que consume</span>
                         <span style="font-family:'Orbitron',monospace;color:var(--accent-cyan);">${daysConsumed.toFixed(1)} días</span>
                     </div>
-
+                    ${breathingLost !== null ? `<div style="display:flex;justify-content:space-between;font-size:0.85rem;">
+                        <span style="color:var(--text-secondary);">Días de respiro que perdes</span>
+                        <span style="font-family:'Orbitron',monospace;color:${breathingLost > 3 ? '#ff4757' : 'var(--accent-yellow)'};">−${breathingLost} días</span>
+                    </div>` : ''}
+                    ${marginPct !== null ? `<div style="display:flex;justify-content:space-between;font-size:0.85rem;">
+                        <span style="color:var(--text-secondary);">% do teu marxe libre</span>
+                        <span style="font-family:'Orbitron',monospace;color:${marginPct > 50 ? '#ff4757' : marginPct > 25 ? 'var(--accent-yellow)' : 'var(--accent-green)'};">${marginPct.toFixed(1)}%</span>
+                    </div>` : ''}
+                    ${periodsToRecover !== null ? `<div style="display:flex;justify-content:space-between;font-size:0.85rem;">
+                        <span style="color:var(--text-secondary);">Períodos para recuperalo</span>
+                        <span style="font-family:'Orbitron',monospace;color:${periodsToRecover > 2 ? '#ff4757' : periodsToRecover > 1 ? 'var(--accent-yellow)' : 'var(--accent-green)'};">${periodsToRecover.toFixed(1)}P</span>
+                    </div>` : ''}
                     ${goalsAtRisk.length ? `
                     <div style="margin-top:6px;padding:8px;background:rgba(255,71,87,0.1);border-radius:8px;font-size:0.8rem;color:#ff4757;">
                         ⚠️ Metas en risco: ${goalsAtRisk.map(g => escapeHtml(g.name)).join(', ')}
                     </div>` : ''}
+                    ${patternBreakHtml}
                 </div>`;
         }
 
