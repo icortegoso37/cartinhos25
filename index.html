@@ -7108,7 +7108,7 @@
             el.innerHTML = `Período actual: <strong>${ps} → ${pe}</strong> · Día ${p.dayInPeriod} de ${p.totalDays}`;
         }
         // me lo puedo permitir?
-        function checkCanAfford() {
+               function checkCanAfford() {
             const amount = parseAmount($('affordAmount').value) || 0;
             if (amount <= 0) { toast('Introduce un importe válido', 'error'); return; }
             const r = FinancialEngine.calculateAvailableToday(AppState);
@@ -7117,25 +7117,29 @@
             const dailyAvailable = r?.breakdown?.availablePerDay || 0;
             const remainingDays = r?.periodInfo?.remainingDays || 1;
             const totalAvailable = r?.totalAvailable || 0;
-            const daysConsumed = dailyAvailable > 0 ? amount / dailyAvailable : 0;
+
+            // O que quedaría DESPOIS do gasto
+            const afterToday = r2(availableToday - amount);
+            const afterPeriod = r2(totalAvailable - amount);
+            const daysConsumed = dailyAvailable > 0 ? r2(amount / dailyAvailable) : 0;
+
             const canAffordToday = amount <= availableToday;
-            const canAffordPeriod = amount <= totalAvailable;
             const canAffordWithoutSavings = amount <= availableWithoutSavings;
+            const canAffordPeriod = amount <= totalAvailable;
+
             // Impacto en metas
             const goalsAtRisk = AppState.savingsGoals.filter(g => {
                 if (!g || g.active === false || g.paused || g.completed) return false;
-                const today = getEffectiveDate();
-                const target = new Date(g.targetDate);
-                const daysLeft = Math.ceil((target - today) / (1000 * 60 * 60 * 24));
-                const remaining = g.targetAmount - (g.currentAmount || 0);
-                const newDailyAvailable = r2(dailyAvailable - (amount / (remainingDays || 1)));
+                const newDailyAvailable = r2(dailyAvailable - (amount / remainingDays));
                 return newDailyAvailable < (g.dailyAmount || 0);
             });
+
             let icon, color, verdict;
             if (canAffordToday) { icon = '✅'; color = 'var(--accent-green)'; verdict = 'Podes permitircho hoxe sen problema'; }
             else if (canAffordWithoutSavings) { icon = '🟡'; color = 'var(--accent-yellow)'; verdict = 'Podes, pero tocarías o teu aforro diario'; }
             else if (canAffordPeriod) { icon = '🟠'; color = 'var(--accent-orange)'; verdict = 'Podes, pero afectaría aos próximos días'; }
             else { icon = '🔴'; color = '#ff4757'; verdict = 'Non é recomendable agora mesmo'; }
+
             $('affordResult').style.display = 'block';
             $('affordResult').innerHTML = `
                 <div style="text-align:center;margin-bottom:12px;">
@@ -7144,16 +7148,16 @@
                 </div>
                 <div style="display:grid;gap:8px;">
                     <div style="display:flex;justify-content:space-between;font-size:0.85rem;">
-                        <span style="color:var(--text-secondary);">Dispoñible hoxe</span>
-                        <span style="color:${canAffordToday ? 'var(--accent-green)' : '#ff4757'};font-family:'Orbitron',monospace;">${fc(availableToday)}</span>
+                        <span style="color:var(--text-secondary);">Quedaríache hoxe</span>
+                        <span style="color:${afterToday >= 0 ? 'var(--accent-green)' : '#ff4757'};font-family:'Orbitron',monospace;">${fc(afterToday)}</span>
                     </div>
                     <div style="display:flex;justify-content:space-between;font-size:0.85rem;">
-                        <span style="color:var(--text-secondary);">Días de dispoñible que consume</span>
+                        <span style="color:var(--text-secondary);">Días de marxe que consume</span>
                         <span style="font-family:'Orbitron',monospace;color:var(--accent-cyan);">${daysConsumed.toFixed(1)} días</span>
                     </div>
                     <div style="display:flex;justify-content:space-between;font-size:0.85rem;">
-                        <span style="color:var(--text-secondary);">Dispoñible resto do período</span>
-                        <span style="font-family:'Orbitron',monospace;color:${canAffordPeriod ? 'var(--accent-green)' : '#ff4757'};">${fc(totalAvailable)}</span>
+                        <span style="color:var(--text-secondary);">Quedaríache no período</span>
+                        <span style="font-family:'Orbitron',monospace;color:${afterPeriod >= 0 ? 'var(--accent-green)' : '#ff4757'};">${fc(afterPeriod)}</span>
                     </div>
                     ${goalsAtRisk.length ? `
                     <div style="margin-top:6px;padding:8px;background:rgba(255,71,87,0.1);border-radius:8px;font-size:0.8rem;color:#ff4757;">
@@ -7161,6 +7165,7 @@
                     </div>` : ''}
                 </div>`;
         }
+
 
         //Modo Viaxe
 
