@@ -2178,6 +2178,17 @@
                             required id="expenseAmountInput">
                         <div id="expenseImpactPreview" style="display:none;margin-top:6px;padding:6px 10px;background:rgba(0,245,255,0.08);border-radius:8px;font-size:0.78rem;color:var(--text-secondary);"></div>
                     </div>
+                <div id="splitPanel" style="display:none;margin-top:8px;padding:10px;background:rgba(168,85,247,0.08);border-radius:8px;border:1px solid rgba(168,85,247,0.3);">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                        <span style="color:var(--accent-purple);font-size:0.85rem;font-weight:600;">✂️ Dividir gasto</span>
+                        <span id="splitRemaining" style="font-size:0.8rem;color:var(--text-muted);">Restante: 0,00€</span>
+                    </div>
+                    <div id="splitLines"></div>
+                    <button type="button" onclick="addSplitLine()" style="width:100%;padding:6px;margin-top:6px;background:rgba(168,85,247,0.15);border:1px dashed rgba(168,85,247,0.4);border-radius:6px;color:var(--accent-purple);font-size:0.8rem;cursor:pointer;">+ Engadir liña</button>
+                </div>
+                <div style="margin-top:6px;">
+                    <button type="button" onclick="toggleSplitPanel()" id="btnSplit" style="width:100%;padding:6px;background:transparent;border:1px solid rgba(168,85,247,0.3);border-radius:6px;color:var(--accent-purple);font-size:0.8rem;cursor:pointer;">✂️ Dividir en categorías</button>
+                </div>
                     <div class="form-group"><label class="form-label">Data</label><input type="date" class="form-input"
                             name="date" required></div>
                 </div>
@@ -4818,13 +4829,30 @@
 
             c.innerHTML = AppState.savingsGoals.map(g => {
                 const p = g.targetAmount > 0 ? (g.currentAmount / g.targetAmount) * 100 : 0;
-                const dr = g.dailyAmount > 0 ? Math.ceil((g.targetAmount - g.currentAmount) / g.dailyAmount) : '∞';
+                const drDays = g.dailyAmount > 0 ? Math.ceil((g.targetAmount - g.currentAmount) / g.dailyAmount) : null;
+                const dr = drDays !== null ? drDays : '∞';
                 const pc = p < 30 ? 'danger' : p < 70 ? 'warning' : 'success';
                 const isCompleted = g.completed === true;
                 const isExpired = g.targetDate && new Date(g.targetDate) < today && !isCompleted;
                 const borderColor = isCompleted ? 'var(--accent-green)' : isExpired ? '#ff4757' : 'var(--accent-purple)';
                 const completedBadge = isCompleted ? '<span style="font-size:0.7rem;background:rgba(57,255,20,0.2);color:var(--accent-green);padding:2px 6px;border-radius:4px;margin-left:6px;">✅ Completada</span>' : '';
                 const pausedBadge = g.paused && !isCompleted ? '<span style="font-size:0.7rem;background:rgba(255,217,61,0.2);color:var(--accent-yellow);padding:2px 6px;border-radius:4px;margin-left:6px;">⏸ Pausada</span>' : '';
+                // Hoja de ruta — fecha estimada de consecución
+                let roadmapHtml = '';
+                if (!isCompleted && drDays !== null) {
+                    const estimatedDate = new Date(today);
+                    estimatedDate.setDate(today.getDate() + drDays);
+                    const months = Math.floor(drDays / 30);
+                    const timeLabel = drDays <= 30 ? `${drDays} días` : months === 1 ? '1 mes' : `${months} meses`;
+                    const dateLabel = estimatedDate.toLocaleDateString('gl-ES', { month: 'long', year: 'numeric' });
+                    const urgencyColor = drDays <= 30 ? 'var(--accent-green)' : drDays <= 90 ? 'var(--accent-yellow)' : 'var(--accent-cyan)';
+                    roadmapHtml = `<div style="margin-top:6px;font-size:0.75rem;color:var(--text-muted);display:flex;justify-content:space-between;">
+                        <span>🗓️ Alcanzas en <strong style="color:${urgencyColor};">${timeLabel}</strong></span>
+                        <span style="color:${urgencyColor};">${dateLabel}</span>
+                    </div>`;
+                } else if (!isCompleted && g.targetDate) {
+                    roadmapHtml = `<div style="margin-top:6px;font-size:0.75rem;color:var(--text-muted);">🗓️ Sen aportación diaria definida</div>`;
+                }
                 return `<div class="list-item" style="flex-direction:column;align-items:stretch;border-left-color:${borderColor}">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
                 <div class="list-item-info">
@@ -4847,6 +4875,7 @@
             <div class="progress-bar">
                 <div class="progress-fill ${pc}" style="width:${Math.min(p, 100)}%"></div>
             </div>
+            ${roadmapHtml}
         </div>`;
             }).join('');
         }
@@ -5154,6 +5183,29 @@
             // Alertas (configurables + anomalías) — urxente
             const _rPtr = FinancialEngine.calculateAvailableToday(AppState);
             const _ptrAlerts = [];
+            // Alertas de fijos próximos
+            const _hoxe = getEffectiveDate(); _hoxe.setHours(0,0,0,0);
+            (AppState.recurringExpenses || []).filter(r => r && !r.archived && !isRecurringPaidThisPeriod(r)).forEach(rec => {
+                const _dom = rec.dayOfMonth || 1;
+                const _nextDate = new Date(_hoxe.getFullYear(), _hoxe.getMonth(), _dom);
+                if (_nextDate < _hoxe) _nextDate.setMonth(_nextDate.getMonth() + 1);
+                const _daysLeft = Math.ceil((_nextDate - _hoxe) / (1000 * 60 * 60 * 24));
+                if (_daysLeft <= 3) {
+                    const _icon = _daysLeft === 0 ? '🚨' : _daysLeft === 1 ? '⚠️' : '⏰';
+                    const _when = _daysLeft === 0 ? 'Hoxe' : _daysLeft === 1 ? 'Mañá' : `En ${_daysLeft} días`;
+                    _ptrAlerts.push({ icon: _icon, title: `${_when}: ${escapeHtml(rec.description)}`, description: `Vence o día ${_dom} (${fc(rec.amount)}). Asegúrate de ter saldo suficiente.`, amount: null, type: _daysLeft <= 1 ? 'danger' : 'warning' });
+                }
+            });
+            // Alerta subida de prezo en fixos
+            (AppState.recurringExpenses || []).filter(r => r && !r.archived).forEach(rec => {
+                const _hist = (AppState.expenses || []).filter(e => e && e.description && e.description.toLowerCase().trim() === rec.description.toLowerCase().trim()).sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 6);
+                if (_hist.length < 3) return;
+                const _media = r2(_hist.slice(1).reduce((s, e) => s + (parseFloat(e.amount) || 0), 0) / (_hist.length - 1));
+                const _actual = parseFloat(rec.amount) || 0;
+                if (_media > 0 && _actual > _media * 1.1) {
+                    _ptrAlerts.push({ icon: '📈', title: `${escapeHtml(rec.description)} subiu de prezo`, description: `Antes pagabas de media ${fc(_media)}, agora está en ${fc(_actual)}. Revisa se segue valendo a pena.`, amount: null, type: 'warning' });
+                }
+            });
             // Alerta día da semana
             const _diasSemana = ['Domingo', 'Luns', 'Martes', 'Mércores', 'Xoves', 'Venres', 'Sábado'];
             const _hoxeDia = getEffectiveDate().getDay();
@@ -6023,24 +6075,47 @@
             const days = parseInt(activeBtn?.dataset.days) || 30;
             const today = getEffectiveDate(); today.setHours(0, 0, 0, 0);
             const r = FinancialEngine.calculateAvailableToday(AppState);
-            const dailyAvailable = r?.breakdown?.availablePerDay || 0;
+
+            // Media de gasto por día da semana (0=domingo ... 6=sábado)
+            const _gastosPorDiaSemana = [0,0,0,0,0,0,0];
+            const _conteoPorDiaSemana = [0,0,0,0,0,0,0];
+            (AppState.expenses || []).forEach(e => {
+                if (!e || !e.date) return;
+                const d = parseDate(e.date);
+                const dia = d.getDay();
+                _gastosPorDiaSemana[dia] += parseFloat(e.amount) || 0;
+                _conteoPorDiaSemana[dia]++;
+            });
+            const _mediasDiaSemana = _gastosPorDiaSemana.map((g, i) =>
+                _conteoPorDiaSemana[i] > 0 ? r2(g / _conteoPorDiaSemana[i]) : null
+            );
+            const _mediaGlobal = r2(
+                _mediasDiaSemana.filter(m => m !== null).reduce((s, m) => s + m, 0) /
+                Math.max(_mediasDiaSemana.filter(m => m !== null).length, 1)
+            );
+
             const labels = [], balanceData = [], pointColors = [];
             let runningBalance = AppState.accounts
                 .filter(a => a.forDailySpending && !a.archived)
                 .reduce((s, a) => s + (parseFloat(a.balance) || 0), 0);
+
             for (let i = 0; i < days; i++) {
                 const day = new Date(today);
                 day.setDate(today.getDate() + i);
                 const dayOfMonth = day.getDate();
+                const diaSemana = day.getDay();
                 const isPayDay = dayOfMonth === (AppState.payDay || 1);
                 const fixedToday = AppState.recurringExpenses
                     .filter(rec => rec.dayOfMonth === dayOfMonth && !rec.archived)
                     .reduce((s, rec) => s + (parseFloat(rec.variable ? getVariableRecurringEstimate(rec) : rec.amount) || 0), 0);
+                const variableEstimado = _mediasDiaSemana[diaSemana] !== null
+                    ? _mediasDiaSemana[diaSemana]
+                    : _mediaGlobal;
                 if (isPayDay) {
                     const avgIncome = AppState.incomes.slice(-3).reduce((s, x) => s + (parseFloat(x.amount) || 0), 0) / Math.max(AppState.incomes.slice(-3).length, 1);
                     runningBalance += avgIncome;
                 }
-                runningBalance = r2(runningBalance - fixedToday);
+                runningBalance = r2(runningBalance - fixedToday - variableEstimado);
                 labels.push(day.toLocaleDateString('gl-ES', { day: '2-digit', month: 'short' }));
                 balanceData.push(runningBalance);
                 pointColors.push(isPayDay ? '#39ff14' : fixedToday > 0 ? '#ffd93d' : runningBalance < 0 ? '#ff4757' : '#00f5ff');
@@ -6346,6 +6421,45 @@
             }
         }
 
+        function toggleSplitPanel() {
+            const panel = $('splitPanel');
+            const btn = $('btnSplit');
+            const visible = panel.style.display !== 'none';
+            panel.style.display = visible ? 'none' : 'block';
+            btn.textContent = visible ? '✂️ Dividir en categorías' : '✕ Cancelar división';
+            if (!visible) {
+                $('splitLines').innerHTML = '';
+                addSplitLine();
+                addSplitLine();
+                updateSplitRemaining();
+            }
+        }
+
+        function addSplitLine() {
+            const cats = { alimentacion: '🍎 Alimentación', transporte: '🚗 Transporte', ocio: '🎮 Ocio', saude: '💊 Saúde', roupa: '👕 Roupa', cafe: '☕ Café/Snacks', subscricions: '📱 Subscricións', outros: '📦 Outros' };
+            const div = document.createElement('div');
+            div.className = 'split-line';
+            div.style.cssText = 'display:flex;gap:6px;margin-bottom:6px;align-items:center;';
+            div.innerHTML = `
+                <input type="number" class="form-input split-amount" placeholder="0.00" step="0.01" inputmode="decimal" style="flex:1;min-width:80px;" oninput="updateSplitRemaining()">
+                <select class="form-select split-cat" style="flex:2;">
+                    ${Object.entries(cats).map(([k,v]) => `<option value="${k}">${v}</option>`).join('')}
+                </select>
+                <button type="button" onclick="this.parentElement.remove();updateSplitRemaining();" style="background:none;border:none;color:#ff4757;font-size:1.1rem;cursor:pointer;padding:0 4px;">✕</button>`;
+            $('splitLines').appendChild(div);
+        }
+
+        function updateSplitRemaining() {
+            const total = parseAmount(document.querySelector('#expenseForm [name="amount"]')?.value) || 0;
+            const used = Array.from(document.querySelectorAll('.split-amount')).reduce((s, i) => s + (parseAmount(i.value) || 0), 0);
+            const remaining = r2(total - used);
+            const el = $('splitRemaining');
+            if (el) {
+                el.textContent = `Restante: ${fc(remaining)}`;
+                el.style.color = Math.abs(remaining) < 0.01 ? 'var(--accent-green)' : remaining < 0 ? '#ff4757' : 'var(--text-muted)';
+            }
+        }
+
         async function saveExpense(e) {
             e.preventDefault();
             document.activeElement.blur();
@@ -6400,7 +6514,30 @@
                     toast('Non se pode engadir gastos a unha conta arquivada', 'error');
                     return;
                 }
-                if (acc) {
+                // Comprobar se hai división
+                const splitLines = document.querySelectorAll('.split-line');
+                const isSplit = $('splitPanel').style.display !== 'none' && splitLines.length > 0;
+                if (isSplit) {
+                    const splitData = Array.from(splitLines).map(l => ({
+                        amount: parseAmount(l.querySelector('.split-amount').value) || 0,
+                        category: l.querySelector('.split-cat').value
+                    })).filter(s => s.amount > 0);
+                    const splitTotal = r2(splitData.reduce((s, l) => s + l.amount, 0));
+                    if (Math.abs(splitTotal - data.amount) > 0.01) {
+                        toast(`A suma das liñas (${fc(splitTotal)}) non coincide co total (${fc(data.amount)})`, 'error');
+                        isProcessing = false; return;
+                    }
+                    if (acc) {
+                        acc.balance -= data.amount;
+                        await Database.update('accounts', acc);
+                        AppState.accounts = AppState.accounts.map(a => a.id === acc.id ? acc : a);
+                        for (const line of splitData) {
+                            const splitExpense = { ...data, amount: line.amount, category: line.category };
+                            const id = await Database.add('expenses', splitExpense);
+                            AppState.expenses.push({ ...splitExpense, id });
+                        }
+                    }
+                } else if (acc) {
                     acc.balance -= data.amount;
                     const results = await Database.runTransaction(
                         ['accounts', 'expenses'], 'readwrite', [
@@ -8463,6 +8600,44 @@
             const dayExpenses = AppState.expenses.filter(e => e.date && e.date.startsWith(dateStr));
             const dayIncomes = AppState.incomes.filter(i => i.date && i.date.startsWith(dateStr));
 
+            // Saldo proxectado para días futuros
+            const today = getEffectiveDate(); today.setHours(0,0,0,0);
+            const targetDate = new Date(dateStr); targetDate.setHours(0,0,0,0);
+            const isFuture = targetDate > today;
+            let saldoProxectado = null;
+            let fixosDiaHtml = '';
+            if (isFuture) {
+                const _gastosPorDiaSemana = [0,0,0,0,0,0,0];
+                const _conteoPorDiaSemana = [0,0,0,0,0,0,0];
+                (AppState.expenses || []).forEach(e => {
+                    if (!e || !e.date) return;
+                    const d = parseDate(e.date);
+                    _gastosPorDiaSemana[d.getDay()] += parseFloat(e.amount) || 0;
+                    _conteoPorDiaSemana[d.getDay()]++;
+                });
+                const _mediasDia = _gastosPorDiaSemana.map((g, i) => _conteoPorDiaSemana[i] > 0 ? r2(g / _conteoPorDiaSemana[i]) : null);
+                const _mediaGlobal = r2(_mediasDia.filter(m => m !== null).reduce((s, m) => s + m, 0) / Math.max(_mediasDia.filter(m => m !== null).length, 1));
+                let _balance = AppState.accounts.filter(a => a.forDailySpending && !a.archived).reduce((s, a) => s + (parseFloat(a.balance) || 0), 0);
+                const _daysUntil = Math.ceil((targetDate - today) / (1000 * 60 * 60 * 24));
+                for (let i = 1; i <= _daysUntil; i++) {
+                    const _d = new Date(today); _d.setDate(today.getDate() + i);
+                    const _dom = _d.getDate();
+                    const _isPayDay = _dom === (AppState.payDay || 1);
+                    const _fixos = (AppState.recurringExpenses || []).filter(r => r.dayOfMonth === _dom && !r.archived).reduce((s, r) => s + (parseFloat(r.amount) || 0), 0);
+                    const _varEst = _mediasDia[_d.getDay()] !== null ? _mediasDia[_d.getDay()] : _mediaGlobal;
+                    if (_isPayDay) {
+                        const _avgIncome = AppState.incomes.slice(-3).reduce((s, x) => s + (parseFloat(x.amount) || 0), 0) / Math.max(AppState.incomes.slice(-3).length, 1);
+                        _balance += _avgIncome;
+                    }
+                    _balance = r2(_balance - _fixos - _varEst);
+                }
+                saldoProxectado = _balance;
+                const _fixosDia = (AppState.recurringExpenses || []).filter(r => r.dayOfMonth === targetDate.getDate() && !r.archived);
+                if (_fixosDia.length > 0) {
+                    fixosDiaHtml = `<div style="margin-bottom:12px;">${_fixosDia.map(r => `<div style="display:flex;justify-content:space-between;font-size:0.85rem;color:var(--accent-yellow);"><span>📌 ${escapeHtml(r.description)}</span><span>-${fc(r.amount)}</span></div>`).join('')}</div>`;
+                }
+            }
+
             const modal = document.createElement('div');
             modal.className = 'modal-overlay active';
             modal.innerHTML = `
@@ -8471,6 +8646,14 @@
                     <h3 class="modal-title">${date.toLocaleDateString('gl-ES', { weekday: 'long', day: 'numeric', month: 'long' })}</h3>
                     <button class="modal-close" onclick="this.closest('.modal-overlay').remove()">×</button>
                 </div>
+                ${isFuture && saldoProxectado !== null ? `
+                <div style="margin-bottom:15px;padding:10px 12px;background:rgba(0,245,255,0.08);border-radius:8px;border-left:3px solid var(--accent-cyan);">
+                    <div style="display:flex;justify-content:space-between;align-items:center;">
+                        <span style="color:var(--text-secondary);font-size:0.85rem;">💰 Saldo proxectado</span>
+                        <span style="color:${saldoProxectado >= 0 ? 'var(--accent-cyan)' : '#ff4757'};font-weight:700;font-size:1.05rem;">${fc(saldoProxectado)}</span>
+                    </div>
+                    ${fixosDiaHtml}
+                </div>` : ''}
                 ${dayIncomes.length > 0 ? `<div style="margin-bottom:15px;"><h4 style="color:var(--accent-green);margin-bottom:8px;">💰 Ingresos</h4>${dayIncomes.map(i => `<div class="list-item" style="border-left-color:var(--accent-green);"><div class="list-item-info"><div class="list-item-name">${i.description}</div></div><div class="list-item-amount income">+${fc(i.amount)}</div></div>`).join('')}</div>` : ''}
                 ${dayExpenses.length > 0 ? `<div style="margin-bottom:15px;"><h4 style="color:var(--accent-pink);margin-bottom:8px;">💸 Gastos</h4>${dayExpenses.map(e => `<div class="list-item"><div class="list-item-info"><div class="list-item-name">${e.description}</div><div class="list-item-details">${e.category || 'outros'}</div></div><div class="list-item-amount expense">-${fc(e.amount)}</div></div>`).join('')}</div>` : ''}
                 ${events.length > 0 ? `<div style="margin-bottom:15px;"><h4 style="color:var(--accent-cyan);margin-bottom:8px;">📌 Eventos</h4>${events.map(e => `<div class="list-item" style="border-left-color:var(--accent-cyan);"><div class="list-item-info"><div class="list-item-name">${e.description}</div><div class="list-item-details">${e.type}${e.amount ? ' · ' + fc(e.amount) : ''}</div></div><button class="btn btn-danger btn-icon" onclick="deleteCalendarEvent(${e.id});this.closest('.modal-overlay').remove();">✕</button></div>`).join('')}</div>` : ''}
