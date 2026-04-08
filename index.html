@@ -2471,9 +2471,10 @@
                 } else if (availableToday < 0) {
                     if (dailySavingsAmount > 0 && availablePerDay > 0 && dailySavingsAmount > availablePerDay) {
                         savingsExceedAvailable = true;
-                    } else if (availablePerDay <= 0) {
-                        const dailyDeficit = Math.abs(availablePerDay);
-                        daysToZero = dailyDeficit > 0 ? Math.floor(totalAvailable / dailyDeficit) : remainingDays;
+                    } else if (availableToday < 0) {
+                        const dailyDeficit = Math.abs(availableToday);
+                        const netAvailable = totalAvailable - (dailySavingsAmount + dailyDebtRepayment) * remainingDays;
+                        daysToZero = dailyDeficit > 0 ? Math.max(0, Math.floor(netAvailable / dailyDeficit)) : remainingDays;
                     }
 
                 } return {
@@ -3307,7 +3308,8 @@
                 payDay: AppState.payDay,
                 alertsConfig: AppState.alertsConfig,
                 extremeSavingMode: AppState.extremeSavingMode,
-                pushNotificationsEnabled: AppState.pushNotificationsEnabled
+                pushNotificationsEnabled: AppState.pushNotificationsEnabled,
+                scoreHistory: AppState.scoreHistory || {}
             };
             try {
                 await Database.update('appConfig', config);
@@ -3328,6 +3330,7 @@
                     if (config.alertsConfig) AppState.alertsConfig = config.alertsConfig;
                     if (config.extremeSavingMode) AppState.extremeSavingMode = config.extremeSavingMode;
                     if (config.pushNotificationsEnabled !== undefined) AppState.pushNotificationsEnabled = config.pushNotificationsEnabled;
+                    if (config.scoreHistory) AppState.scoreHistory = config.scoreHistory;
                 }
             } catch (e) { console.log('No config found, using defaults'); }
         }
@@ -5414,8 +5417,22 @@
             // Alertas (configurables + anomalías) — urxente
             const _rPtr = FinancialEngine.calculateAvailableToday(AppState);
             const _ptrAlerts = [];
-            // Alertas de fijos próximos
+            // Alertas de gastos anuais próximos
             const _hoxe = getEffectiveDate(); _hoxe.setHours(0,0,0,0);
+            (AppState.annualExpenses || []).filter(a => a && a.nextDate).forEach(annual => {
+                const _nextDate = new Date(annual.nextDate); _nextDate.setHours(0,0,0,0);
+                const _daysLeft = Math.ceil((_nextDate - _hoxe) / (1000 * 60 * 60 * 24));
+                if (_daysLeft >= 0 && _daysLeft <= 7) {
+                    const _saved = annual.currentSaved || 0;
+                    const _remaining = r2(annual.totalAmount - _saved);
+                    const _icon = _daysLeft === 0 ? '🚨' : _daysLeft <= 2 ? '⚠️' : '⏰';
+                    const _when = _daysLeft === 0 ? 'Hoxe' : _daysLeft === 1 ? 'Mañá' : `En ${_daysLeft} días`;
+                    const _extra = _remaining > 0 ? ` Levas reservados ${fc(_saved)}, fáltanche ${fc(_remaining)}.` : ' ✅ Tes o importe completo.';
+                    _ptrAlerts.push({ icon: _icon, title: `${_when}: ${escapeHtml(annual.name)}`, description: `Vence o ${new Date(annual.nextDate).toLocaleDateString('gl-ES', {day:'numeric',month:'long'})} (${fc(annual.totalAmount)}).${_extra}`, amount: null, type: _remaining > 0 && _daysLeft <= 2 ? 'danger' : 'warning' });
+                }
+            });
+
+            // Alertas de fijos próximos
             (AppState.recurringExpenses || []).filter(r => r && !r.archived && !isRecurringPaidThisPeriod(r)).forEach(rec => {
                 const _dom = rec.dayOfMonth || 1;
                 const _nextDate = new Date(_hoxe.getFullYear(), _hoxe.getMonth(), _dom);
@@ -5459,7 +5476,8 @@
                 const _fixosPendentes = (AppState.recurringExpenses || []).filter(e => e && !isRecurringPaidThisPeriod(e)).reduce((s, e) => s + (parseFloat(e.amount) || 0), 0);
                 const _aforrosPendentes = r2((_rPtr.breakdown.dailySavingsAmount || 0) * _rPtr.periodInfo.remainingDays);
                 const _marxe = r2(_rPtr.totalAvailable - _fixosPendentes - _aforrosPendentes);
-                const _diasMarxe = _rPtr.breakdown.availablePerDay > 0 ? Math.floor(_marxe / _rPtr.breakdown.availablePerDay) : 0;
+                const _availablePerDayFresh = _rPtr.periodInfo.remainingDays > 0 ? _marxe / _rPtr.periodInfo.remainingDays : 0;
+const _diasMarxe = _availablePerDayFresh > 0 ? Math.floor(_marxe / _availablePerDayFresh) : 0;
                 if (_marxe <= 0) {
                     _ptrAlerts.push({ icon: '🚨', title: 'Punto de non retorno superado', description: 'O saldo restante só cubre os gastos fixos e aforros pendentes. Sen marxe para gastos variables.', amount: null, type: 'danger' });
                 } else if (_diasMarxe <= 3) {
@@ -5643,21 +5661,29 @@
 
             // FACTOR 4 (15%): ¿Semáforo baixo control?
             let factor4 = 100;
-            const now2 = getEffectiveDate();
-            const cm = now2.getMonth(), cy = now2.getFullYear();
             const currentByCat = {};
             AppState.expenses.forEach(e => {
                 if (!e || !e.date || e.extraordinary) return;
-                const d = parseDate(e.date);
-                if (d.getMonth() === cm && d.getFullYear() === cy)
+                const d = parseDate(e.date); d.setHours(0, 0, 0, 0);
+                if (d >= pInfo.periodStart && d <= pInfo.periodEnd)
                     currentByCat[e.category] = (currentByCat[e.category] || 0) + (parseFloat(e.amount) || 0);
             });
             const redCats = Object.keys(currentByCat).filter(cat => {
                 const history = [];
-                for (let i = 1; i <= 6; i++) {
-                    const m = new Date(cy, cm - i, 1), mEnd = new Date(cy, cm - i + 1, 0);
-                    const total = AppState.expenses.filter(e => { if (!e || !e.date || e.extraordinary) return false; const d = parseDate(e.date); d.setHours(0, 0, 0, 0); return d >= m && d <= mEnd && e.category === cat; }).reduce((s, e) => s + (parseFloat(e.amount) || 0), 0);
-                    if (total > 0) history.push(total);
+                const sortedPH = (AppState.periodHistory || []).sort((a, b) => new Date(b.closedAt) - new Date(a.closedAt)).slice(0, 6);
+                if (sortedPH.length >= 2) {
+                    sortedPH.forEach(ph => {
+                        const total = (ph.expenses || []).filter(e => e && e.category === cat && !e.extraordinary).reduce((s, e) => s + (parseFloat(e.amount) || 0), 0);
+                        if (total > 0) history.push(total);
+                    });
+                } else {
+                    const now2 = getEffectiveDate();
+                    const cm = now2.getMonth(), cy = now2.getFullYear();
+                    for (let i = 1; i <= 6; i++) {
+                        const m = new Date(cy, cm - i, 1), mEnd = new Date(cy, cm - i + 1, 0);
+                        const total = AppState.expenses.filter(e => { if (!e || !e.date || e.extraordinary) return false; const d = parseDate(e.date); d.setHours(0, 0, 0, 0); return d >= m && d <= mEnd && e.category === cat; }).reduce((s, e) => s + (parseFloat(e.amount) || 0), 0);
+                        if (total > 0) history.push(total);
+                    }
                 }
                 if (!history.length) return false;
                 const avg = history.reduce((s, v) => s + v, 0) / history.length;
@@ -5675,10 +5701,12 @@
             else if (score >= 40) { color = '#ff9f43'; emoji = '🧡'; label = 'Atención Necesaria'; }
             else { color = '#ff4757'; emoji = '❤️'; label = 'Situación Crítica'; }
 
-            // Gardar score mensual
+            // Gardar score mensual en IndexedDB (vía appConfig)
             const now3 = getEffectiveDate();
-            const scoreKey = `cartinos_score_${now3.getFullYear()}_${now3.getMonth()}`;
-            localStorage.setItem(scoreKey, score);
+            const scoreKey = `${now3.getFullYear()}_${now3.getMonth()}`;
+            if (!AppState.scoreHistory) AppState.scoreHistory = {};
+            AppState.scoreHistory[scoreKey] = score;
+            saveAppConfig();
 
             el.innerHTML = `
                 <div style="font-size:4rem;line-height:1;">${emoji}</div>
@@ -5708,12 +5736,13 @@
                 ${(() => {
                     const now4 = getEffectiveDate();
                     const history = [];
+                    const sh = AppState.scoreHistory || {};
                     for (let i = 5; i >= 0; i--) {
                         const d = new Date(now4.getFullYear(), now4.getMonth() - i, 1);
-                        const k = `cartinos_score_${d.getFullYear()}_${d.getMonth()}`;
-                        const v = localStorage.getItem(k);
+                        const k = `${d.getFullYear()}_${d.getMonth()}`;
+                        const v = sh[k] ?? null;
                         const monthLabel = d.toLocaleDateString('gl-ES', { month: 'short' });
-                        history.push({ label: monthLabel, value: v ? parseInt(v) : null });
+                        history.push({ label: monthLabel, value: v });
                     }
                     const hasHistory = history.some(h => h.value !== null);
                     if (!hasHistory) return '';
@@ -6705,7 +6734,8 @@
         }
 
         function addSplitLine() {
-            const cats = { alimentacion: '🍎 Alimentación', transporte: '🚗 Transporte', ocio: '🎮 Ocio', saude: '💊 Saúde', roupa: '👕 Roupa', cafe: '☕ Café/Snacks', subscricions: '📱 Subscricións', outros: '📦 Outros' };
+            const _dynCats = loadCategories('expense');
+            const cats = Object.fromEntries(_dynCats.map(c => [c.key, `${c.icon} ${c.label}`]));
             const div = document.createElement('div');
             div.className = 'split-line';
             div.style.cssText = 'display:flex;gap:6px;margin-bottom:6px;align-items:center;';
@@ -7015,16 +7045,22 @@
             if (!fa || !ta) { toast('Selecciona contas', 'error'); return; }
             if (fa.archived === true || ta.archived === true) { toast('Non se pode transferir con contas arquivadas', 'error'); return; }
             fa.balance -= amt; ta.balance += amt;
+            const dateStr = new Date().toISOString().split('T')[0];
             const tr = { fromAccountId: fid, toAccountId: tid, amount: amt, description: `${fa.name}→${ta.name}`, date: new Date().toISOString() };
+            const expData = { description: `Transferencia a ${ta.name}`, amount: amt, date: dateStr, category: 'transferencia', accountId: fid, extraordinary: true };
+            const incData = { description: `Transferencia desde ${fa.name}`, amount: amt, date: dateStr, category: 'transferencia', accountId: tid, extraordinary: true, incomeType: 'extra' };
             const results = await Database.runTransaction(
-                ['accounts', 'transfers'], 'readwrite', [
+                ['accounts', 'transfers', 'expenses', 'incomes'], 'readwrite', [
                 { type: 'update', store: 'accounts', data: fa },
                 { type: 'update', store: 'accounts', data: ta },
-                { type: 'add', store: 'transfers', data: tr }
+                { type: 'add', store: 'transfers', data: tr },
+                { type: 'add', store: 'expenses', data: expData },
+                { type: 'add', store: 'incomes', data: incData }
             ]
             );
-            const id = results[2];
-            AppState.transfers.push({ ...tr, id });
+            AppState.transfers.push({ ...tr, id: results[2] });
+            AppState.expenses.push({ ...expData, id: results[3] });
+            AppState.incomes.push({ ...incData, id: results[4] });
             closeModal('transferModal'); updateAllUI(); toast(`Transferido ${fc(amt)} ✓`);
         }
         let _undoTimer = null;
@@ -8238,7 +8274,8 @@
                 detectedPatterns: [],
                 frequentExpenses: [],
                 searchQuery: '',
-                pushNotificationsEnabled: false
+                pushNotificationsEnabled: false,
+                scoreHistory: {}
             };
             if ($('payDayInput')) $('payDayInput').value = 1;
             updateAllUI();
@@ -8305,6 +8342,7 @@
             const aforroTotal = r2((r.breakdown.dailySavingsAmount || 0) * diasRestantes);
             const dispoRealGasto = r2(r.totalAvailable - aforroTotal);
             const efectivoSemana = r2(dispoRealGasto / diasRestantes * Math.min(7, diasRestantes));
+            const marxeManiobra = dispoRealGasto;
 
             const overlay = document.createElement('div');
             overlay.className = 'modal-overlay active';
@@ -8325,10 +8363,6 @@
                             <span style="color:var(--accent-orange);font-weight:700;font-size:1.05rem;">${fc(gastadoHoxe)}</span>
                         </div>
                         <div style="display:flex;justify-content:space-between;align-items:center;">
-                            <span style="color:var(--text-secondary);font-size:0.9rem;">Gastado hoxe</span>
-                            <span style="color:var(--accent-orange);font-weight:700;font-size:1.05rem;">${fc(gastadoHoxe)}</span>
-                        </div>
-                        <div style="display:flex;justify-content:space-between;align-items:center;">
                             <span style="color:var(--text-secondary);font-size:0.9rem;">Queda para hoxe</span>
                             <span style="color:${quedaHoxe < 0 ? 'var(--accent-pink)' : 'var(--accent-green)'};font-weight:700;font-size:1.05rem;">${fc(quedaHoxe)}</span>
                         </div>
@@ -8343,6 +8377,10 @@
                         <div style="display:flex;justify-content:space-between;align-items:center;">
                             <span style="color:var(--text-secondary);font-size:0.9rem;">Días restantes do período</span>
                             <span style="color:var(--text-primary);font-weight:700;font-size:1.05rem;">${diasRestantes}</span>
+                        </div>
+                        <div style="border-top:1px solid rgba(255,110,199,0.2);padding-top:12px;display:flex;justify-content:space-between;align-items:center;">
+                            <span style="color:var(--text-secondary);font-size:0.9rem;">🎯 Marxe de maniobra</span>
+                            <span style="color:${marxeManiobra >= 0 ? 'var(--accent-green)' : '#ff4757'};font-weight:700;font-size:1.05rem;">${fc(marxeManiobra)}</span>
                         </div>
                         ${proximoFijo ? `
                         <div style="display:flex;justify-content:space-between;align-items:center;">
@@ -8513,6 +8551,10 @@
                 $('accountForm').addEventListener('submit', saveAccount);
                 $('incomeForm').addEventListener('submit', saveIncome);
                 $('expenseForm').addEventListener('submit', saveExpense);
+            document.querySelectorAll('[data-modal]')?.forEach(btn => {
+                btn.addEventListener('click', () => updateCategorySelects());
+            });
+            document.getElementById('fabExpense')?.addEventListener('click', () => updateCategorySelects());
                 $('recurringForm').addEventListener('submit', saveRecurring);
                 $('savingsForm').addEventListener('submit', saveSavingsGoal);
 
