@@ -1442,7 +1442,7 @@
                     <div style="text-align:center;padding:8px;background:rgba(168,85,247,0.08);border-radius:8px;">
                         <div class="stat-value" style="color:var(--accent-purple);font-size:1rem;" id="statFreedomMonths">
                             —</div>
-                        <div class="stat-label">Meses liberdade</div>
+                        <div class="stat-label">Marxe de Liberdade</div>
                     </div>
                 </div>
             </div>
@@ -1577,6 +1577,19 @@
                     <div class="empty-state">
                         <div class="empty-state-icon">🔄</div>
                         <p>Configura gastos fixos</p>
+                    </div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">📅 Gastos Anuais</h2>
+                    <button class="btn btn-primary" id="btnNewAnnual">+ Novo</button>
+                </div>
+                <p style="color:var(--text-muted);margin-bottom:12px;font-size:0.8rem;">ℹ️ Reserva gradualmente para gastos grandes coñecidos</p>
+                <div id="annualExpensesList">
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📅</div>
+                        <p>Engade gastos anuais, semestrais ou trimestrais</p>
                     </div>
                 </div>
             </div>
@@ -1873,6 +1886,12 @@
                         non, usa a media dos últimos 3 meses)</label>
                     <input type="number" class="form-input" id="simulatorCustomIncome"
                         placeholder="Deixa baleiro para usar a media histórica" step="0.01" inputmode="decimal"
+                        onchange="updateSimulator()">
+                </div>
+                <div class="form-group" style="margin-bottom:10px;">
+                    <label class="form-label" style="font-size:0.75rem;">💸 Novo gasto fixo hipotético (opcional — ex: coche a prazos, ximnasio...)</label>
+                    <input type="number" class="form-input" id="simulatorExtraExpense"
+                        placeholder="Ex: 200 € / mes" step="0.01" inputmode="decimal"
                         onchange="updateSimulator()">
                 </div>
                 <div id="simulatorBase"
@@ -2742,10 +2761,24 @@
                     }
                 }
 
-                if (r.availableToday > 50) return `${_humor} Hoxe tes marxe extra. Podes adiantar aforro!` + predictionPhrase + reconducirPhrase + inflacionPhrase;
-                if (r.availableToday > 20) return `${_humor} Hoxe podes gastar ata ${fc(r.availableToday)} sen tocar o aforro.` + predictionPhrase + reconducirPhrase + inflacionPhrase;
-                if (r.availableToday > 0) return `${_humor} Orzamento axustado: ${fc(r.availableToday)} dispoñibles.` + predictionPhrase + reconducirPhrase + inflacionPhrase;
-                return `${_humor} Xusto no límite. Gasta con coidado hoxe.` + predictionPhrase + reconducirPhrase + inflacionPhrase;
+                // Consello fin de período xusto
+                let finPeriodoPhrase = '';
+                if (r.periodInfo && r.periodInfo.remainingDays <= 5 && r.totalAvailable < 50) {
+                    const _proximoMes = new Date(r.periodInfo.periodEnd);
+                    _proximoMes.setDate(_proximoMes.getDate() + 1);
+                    const _fixosProximos = (AppState.recurringExpenses || [])
+                        .filter(rec => rec && !rec.archived && rec.dayOfMonth >= 1 && rec.dayOfMonth <= 5)
+                        .sort((a, b) => a.dayOfMonth - b.dayOfMonth);
+                    if (_fixosProximos.length > 0) {
+                        const _fixo = _fixosProximos[0];
+                        finPeriodoPhrase = ` 💡 O teu ${escapeHtml(_fixo.description)} (${fc(_fixo.amount)}) cae o día ${_fixo.dayOfMonth}. Asegúrate de ter saldo ao inicio do próximo período.`;
+                    }
+                }
+
+                if (r.availableToday > 50) return `${_humor} Hoxe tes marxe extra. Podes adiantar aforro!` + predictionPhrase + reconducirPhrase + inflacionPhrase + finPeriodoPhrase;
+                if (r.availableToday > 20) return `${_humor} Hoxe podes gastar ata ${fc(r.availableToday)} sen tocar o aforro.` + predictionPhrase + reconducirPhrase + inflacionPhrase + finPeriodoPhrase;
+                if (r.availableToday > 0) return `${_humor} Orzamento axustado: ${fc(r.availableToday)} dispoñibles.` + predictionPhrase + reconducirPhrase + inflacionPhrase + finPeriodoPhrase;
+                return `${_humor} Xusto no límite. Gasta con coidado hoxe.` + predictionPhrase + reconducirPhrase + inflacionPhrase + finPeriodoPhrase;
             }
 
             // NOVO: DETECCIÓN DE ANOMALÍAS
@@ -3631,9 +3664,9 @@
         })();
         // DATABASE
         const Database = (function () {
-            const DB_NAME = 'dinheiroDB', DB_VERSION = 8;
+            const DB_NAME = 'dinheiroDB', DB_VERSION = 9;
             let db = null;
-            const STORES = ['accounts', 'incomes', 'expenses', 'recurringExpenses', 'savingsGoals', 'debts', 'transfers', 'notifications', 'calendarEvents', 'appConfig', 'periodHistory', 'priceHistory'];
+            const STORES = ['accounts', 'incomes', 'expenses', 'recurringExpenses', 'savingsGoals', 'debts', 'transfers', 'notifications', 'calendarEvents', 'appConfig', 'periodHistory', 'priceHistory', 'annualExpenses'];
             function open() {
                 return new Promise((resolve, reject) => {
                     const req = indexedDB.open(DB_NAME, DB_VERSION);
@@ -3670,6 +3703,12 @@
                                     d.createObjectStore('priceHistory', { keyPath: 'id', autoIncrement: true });
                                 }
                                 console.log('Migración v8: store priceHistory creado');
+                            }
+                            if (oldVersion < 9) {
+                                if (!d.objectStoreNames.contains('annualExpenses')) {
+                                    d.createObjectStore('annualExpenses', { keyPath: 'id', autoIncrement: true });
+                                }
+                                console.log('Migración v9: store annualExpenses creado');
                             }
                         } catch (err) {
                             console.error('Erro crítico na migración:', err);
@@ -4111,6 +4150,7 @@
                     break;
                 case 'recurring':
                     updateRecurringList();
+                    updateAnnualExpensesList();
                     updateSavingsList();
                     updateDebtsList();
                     break;
@@ -4195,24 +4235,37 @@
             if ($('statNetWorth')) $('statNetWorth').textContent = fc(r2(FinancialEngine.calculateTotalBalance(AppState.accounts) - _deudasNeto));
             // Meses de Liberdade
             if ($('statFreedomMonths')) {
-                const _saldoTotal = FinancialEngine.calculateTotalBalance(AppState.accounts);
-                const _now = new Date(); _now.setHours(0,0,0,0);
-                let _totalGasto3m = 0; let _mesesConDatos = 0;
-                for (let i = 1; i <= 3; i++) {
-                    const _m = new Date(_now.getFullYear(), _now.getMonth() - i, 1);
-                    const _mEnd = new Date(_now.getFullYear(), _now.getMonth() - i + 1, 0);
-                    const _total = (AppState.expenses || []).filter(e => {
+                // Marxe de Liberdade — unifica Meses de Liberdade + Regra 4 YNAB
+                const _saldoActual = (AppState.accounts || [])
+                    .filter(a => a && a.forDailySpending && !a.archived)
+                    .reduce((s, a) => s + (parseFloat(a.balance) || 0), 0);
+                const _last3 = (AppState.periodHistory || []).slice(-3);
+                let _mediaGastoPeriodo = 0;
+                if (_last3.length > 0) {
+                    _mediaGastoPeriodo = r2(_last3.reduce((s, p) => s + (parseFloat(p.totalExpenses) || 0), 0) / _last3.length);
+                } else {
+                    // Sen historial, usar gasto do período actual
+                    _mediaGastoPeriodo = r2((AppState.expenses || []).filter(e => {
                         if (!e || !e.date || e.extraordinary) return false;
                         const d = parseDate(e.date); d.setHours(0,0,0,0);
-                        return d >= _m && d <= _mEnd;
-                    }).reduce((s, e) => s + (parseFloat(e.amount) || 0), 0);
-                    if (_total > 0) { _totalGasto3m += _total; _mesesConDatos++; }
+                        return r && r.periodInfo && d >= r.periodInfo.periodStart;
+                    }).reduce((s, e) => s + (parseFloat(e.amount) || 0), 0));
                 }
-                if (_mesesConDatos > 0 && _saldoTotal > 0) {
-                    const _mediaGastoMes = r2(_totalGasto3m / _mesesConDatos);
-                    const _mesesLibres = r2(_saldoTotal / _mediaGastoMes);
-                    const _emoji = _mesesLibres < 1 ? '🔴' : _mesesLibres < 3 ? '🟡' : _mesesLibres < 6 ? '🟢' : '💎';
-                    $('statFreedomMonths').textContent = `${_emoji} ${_mesesLibres.toFixed(1)}`;
+                if (_mediaGastoPeriodo > 0) {
+                    const _ratio = _saldoActual / _mediaGastoPeriodo;
+                    let _texto, _color;
+                    if (_ratio >= 2) {
+                        _texto = '💎 Colchón feito'; _color = 'var(--accent-green)';
+                    } else if (_ratio >= 1) {
+                        _texto = '🟢 Estable'; _color = 'var(--accent-green)';
+                    } else if (_ratio >= 0.5) {
+                        _texto = '🟡 Axustado'; _color = 'var(--accent-yellow)';
+                    } else {
+                        _texto = '🔴 Tensionado'; _color = 'var(--accent-pink)';
+                    }
+                    $('statFreedomMonths').textContent = _texto;
+                    $('statFreedomMonths').style.color = _color;
+                    $('statFreedomMonths').title = `Saldo: ${fc(_saldoActual)} · Media período: ${fc(_mediaGastoPeriodo)} · Ratio: ${(_ratio).toFixed(2)}x`;
                 } else {
                     $('statFreedomMonths').textContent = '—';
                 }
@@ -4786,6 +4839,175 @@
             await Database.update('savingsGoals', g);
             updateAllUI();
         }
+        async function openAnnualModal(editId = null) {
+            const existing = editId ? (AppState.annualExpenses || []).find(a => a.id === editId) : null;
+            const overlay = document.createElement('div');
+            overlay.className = 'modal-overlay active';
+            overlay.id = 'annualModalOverlay';
+            overlay.innerHTML = `
+                <div class="modal">
+                    <div class="modal-header">
+                        <h3 class="modal-title" style="color:var(--accent-cyan);">📅 ${editId ? 'Editar' : 'Novo'} Gasto Anual</h3>
+                        <button class="modal-close" onclick="document.getElementById('annualModalOverlay').remove()">×</button>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Nome</label>
+                        <input type="text" class="form-input" id="annualName" placeholder="Ex: Seguro do coche" value="${escapeHtml(existing?.name || '')}">
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Importe total</label>
+                            <input type="number" class="form-input" id="annualAmount" placeholder="0.00" step="0.01" inputmode="decimal" value="${existing?.totalAmount || ''}">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Frecuencia</label>
+                            <select class="form-select" id="annualFrequency">
+                                <option value="annual" ${existing?.frequency === 'annual' ? 'selected' : ''}>📅 Anual</option>
+                                <option value="semiannual" ${existing?.frequency === 'semiannual' ? 'selected' : ''}>📅 Semestral</option>
+                                <option value="quarterly" ${existing?.frequency === 'quarterly' ? 'selected' : ''}>📅 Trimestral</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Próxima data de pago</label>
+                        <input type="date" class="form-input" id="annualNextDate" value="${existing?.nextDate || ''}">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">¿Págase en cotas?</label>
+                        <div style="display:flex;gap:8px;">
+                            <button type="button" class="btn ${!existing?.installments?.length ? 'btn-primary' : 'btn-secondary'}" id="annualSingleBtn" onclick="$('annualInstallmentsSection').style.display='none';this.className='btn btn-primary';$('annualMultiBtn').className='btn btn-secondary';">💳 Pago único</button>
+                            <button type="button" class="btn ${existing?.installments?.length ? 'btn-primary' : 'btn-secondary'}" id="annualMultiBtn" onclick="$('annualInstallmentsSection').style.display='block';this.className='btn btn-primary';$('annualSingleBtn').className='btn btn-secondary';">✂️ En cotas</button>
+                        </div>
+                    </div>
+                    <div id="annualInstallmentsSection" style="display:${existing?.installments?.length ? 'block' : 'none'};">
+                        <label class="form-label">Cotas (descrición e importe)</label>
+                        <div id="annualInstallmentLines">
+                            ${existing?.installments?.map((inst, i) => `
+                            <div style="display:flex;gap:6px;margin-bottom:6px;">
+                                <input type="text" class="form-input annual-inst-desc" placeholder="Ex: 1ª cota" value="${escapeHtml(inst.description || '')}" style="flex:2;">
+                                <input type="number" class="form-input annual-inst-amount" placeholder="0.00" step="0.01" value="${inst.amount || ''}" style="flex:1;">
+                                <button type="button" onclick="this.parentElement.remove()" style="background:none;border:none;color:#ff4757;font-size:1.1rem;cursor:pointer;">✕</button>
+                            </div>`).join('') || `
+                            <div style="display:flex;gap:6px;margin-bottom:6px;">
+                                <input type="text" class="form-input annual-inst-desc" placeholder="Ex: 1ª cota" style="flex:2;">
+                                <input type="number" class="form-input annual-inst-amount" placeholder="0.00" step="0.01" style="flex:1;">
+                                <button type="button" onclick="this.parentElement.remove()" style="background:none;border:none;color:#ff4757;font-size:1.1rem;cursor:pointer;">✕</button>
+                            </div>`}
+                        </div>
+                        <button type="button" onclick="addAnnualInstallmentLine()" style="width:100%;padding:6px;background:rgba(0,245,255,0.08);border:1px dashed rgba(0,245,255,0.3);border-radius:6px;color:var(--accent-cyan);font-size:0.8rem;cursor:pointer;margin-top:4px;">+ Engadir cota</button>
+                    </div>
+                    <button class="btn btn-primary" style="width:100%;margin-top:16px;" onclick="saveAnnualExpense(${editId || 'null'})">Gardar</button>
+                </div>`;
+            document.body.appendChild(overlay);
+            overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+        }
+
+        function addAnnualInstallmentLine() {
+            const div = document.createElement('div');
+            div.style.cssText = 'display:flex;gap:6px;margin-bottom:6px;';
+            div.innerHTML = `
+                <input type="text" class="form-input annual-inst-desc" placeholder="Ex: 2ª cota" style="flex:2;">
+                <input type="number" class="form-input annual-inst-amount" placeholder="0.00" step="0.01" style="flex:1;">
+                <button type="button" onclick="this.parentElement.remove()" style="background:none;border:none;color:#ff4757;font-size:1.1rem;cursor:pointer;">✕</button>`;
+            $('annualInstallmentLines').appendChild(div);
+        }
+
+        async function saveAnnualExpense(editId) {
+            const name = $('annualName').value.trim();
+            const totalAmount = parseAmount($('annualAmount').value) || 0;
+            const frequency = $('annualFrequency').value;
+            const nextDate = $('annualNextDate').value;
+            if (!name || totalAmount <= 0 || !nextDate) { toast('Completa todos os campos', 'error'); return; }
+            const isMulti = $('annualInstallmentsSection').style.display !== 'none';
+            let installments = [];
+            if (isMulti) {
+                const descs = document.querySelectorAll('.annual-inst-desc');
+                const amounts = document.querySelectorAll('.annual-inst-amount');
+                descs.forEach((d, i) => {
+                    const amt = parseAmount(amounts[i].value) || 0;
+                    if (amt > 0) installments.push({ description: d.value || `Cota ${i+1}`, amount: amt, paid: false });
+                });
+            }
+            // Calcular cuota periódica recomendada
+            const freqMonths = frequency === 'annual' ? 12 : frequency === 'semiannual' ? 6 : 3;
+            const monthlyReserve = r2(totalAmount / freqMonths);
+            const data = { name, totalAmount, frequency, nextDate, installments, monthlyReserve, currentSaved: editId ? ((AppState.annualExpenses || []).find(a => a.id === editId)?.currentSaved || 0) : 0 };
+            if (editId) {
+                await Database.update('annualExpenses', { ...data, id: editId });
+                AppState.annualExpenses = (AppState.annualExpenses || []).map(a => a.id === editId ? { ...data, id: editId } : a);
+            } else {
+                const id = await Database.add('annualExpenses', data);
+                if (!AppState.annualExpenses) AppState.annualExpenses = [];
+                AppState.annualExpenses.push({ ...data, id });
+            }
+            document.getElementById('annualModalOverlay')?.remove();
+            updateAnnualExpensesList();
+            toast('Gasto anual gardado ✓');
+        }
+
+        async function addAnnualSaving(id) {
+            const goal = (AppState.annualExpenses || []).find(a => a.id === id);
+            if (!goal) return;
+            const amount = parseAmount(prompt(`Engadir reserva a "${goal.name}" (actual: ${fc(goal.currentSaved)} de ${fc(goal.totalAmount)}):`, ''));
+            if (!amount || amount <= 0) return;
+            goal.currentSaved = r2((goal.currentSaved || 0) + amount);
+            await Database.update('annualExpenses', goal);
+            AppState.annualExpenses = (AppState.annualExpenses || []).map(a => a.id === id ? goal : a);
+            updateAnnualExpensesList();
+            if (goal.currentSaved >= goal.totalAmount) toast(`🎉 "${goal.name}" está listo para pagar!`, 'success');
+            else toast(`Reserva de ${fc(amount)} engadida ✓`);
+        }
+
+        async function deleteAnnualExpense(id) {
+            if (!confirm('Eliminar este gasto anual?')) return;
+            await Database.remove('annualExpenses', id);
+            AppState.annualExpenses = (AppState.annualExpenses || []).filter(a => a.id !== id);
+            updateAnnualExpensesList();
+            toast('Gasto anual eliminado ✓');
+        }
+
+        function updateAnnualExpensesList() {
+            const c = $('annualExpensesList');
+            if (!c) return;
+            const list = AppState.annualExpenses || [];
+            if (!list.length) {
+                c.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📅</div><p>Engade gastos anuais, semestrais ou trimestrais</p></div>';
+                return;
+            }
+            const freqLabel = { annual: 'Anual', semiannual: 'Semestral', quarterly: 'Trimestral' };
+            c.innerHTML = list.map(g => {
+                const p = g.totalAmount > 0 ? Math.min((g.currentSaved / g.totalAmount) * 100, 100) : 0;
+                const pc = p < 30 ? 'danger' : p < 70 ? 'warning' : 'success';
+                const isReady = g.currentSaved >= g.totalAmount;
+                const daysLeft = g.nextDate ? Math.ceil((new Date(g.nextDate) - new Date()) / (1000 * 60 * 60 * 24)) : null;
+                const urgencyColor = isReady ? 'var(--accent-green)' : daysLeft !== null && daysLeft <= 30 ? 'var(--accent-pink)' : 'var(--accent-cyan)';
+                const instHtml = g.installments?.length ? `<div style="font-size:0.75rem;color:var(--text-muted);margin-top:4px;">${g.installments.map(i => `${escapeHtml(i.description)}: ${fc(i.amount)}`).join(' · ')}</div>` : '';
+                return `<div class="list-item" style="flex-direction:column;align-items:stretch;border-left-color:${urgencyColor};">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                        <div class="list-item-info">
+                            <div class="list-item-name">${escapeHtml(g.name)} ${isReady ? '<span style="font-size:0.7rem;background:rgba(57,255,20,0.2);color:var(--accent-green);padding:2px 6px;border-radius:4px;">✅ Listo</span>' : ''}</div>
+                            <div class="list-item-details">${freqLabel[g.frequency] || ''} · Reserva: ${fc(g.monthlyReserve)}/mes${daysLeft !== null ? ` · ${daysLeft} días` : ''}</div>
+                            ${instHtml}
+                        </div>
+                        <div style="text-align:right;margin-right:8px;">
+                            <div class="list-item-amount income">${fc(g.currentSaved)}</div>
+                            <div class="list-item-details">de ${fc(g.totalAmount)}</div>
+                        </div>
+                        <div style="display:flex;gap:4px;">
+                            ${!isReady ? `<button class="btn btn-secondary btn-icon" onclick="addAnnualSaving(${g.id})" title="Engadir reserva">+</button>` : ''}
+                            <button class="btn btn-secondary btn-icon" onclick="openAnnualModal(${g.id})" title="Editar">✎</button>
+                            <button class="btn btn-danger btn-icon" onclick="deleteAnnualExpense(${g.id})">✕</button>
+                        </div>
+                    </div>
+                    <div class="progress-bar"><div class="progress-fill ${pc}" style="width:${p}%"></div></div>
+                    <div style="margin-top:6px;font-size:0.75rem;color:var(--text-muted);display:flex;justify-content:space-between;">
+                        <span>🗓️ Próximo pago: <strong style="color:${urgencyColor};">${g.nextDate ? new Date(g.nextDate).toLocaleDateString('gl-ES', {day:'numeric',month:'long',year:'numeric'}) : '—'}</strong></span>
+                        <span style="color:${urgencyColor};">${fc(g.totalAmount - g.currentSaved)} restantes</span>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
         function updateSavingsList() {
             const c = $('savingsList'), ac = $('savingsAlerts');
             if (!c) return;
@@ -5082,6 +5304,7 @@
                     break;
                 case 'recurring':
                     updateRecurringList();
+                    updateAnnualExpensesList();
                     updateSavingsList();
                     updateDebtsList();
                     break;
@@ -5152,7 +5375,15 @@
             const activeBtn = document.querySelector('.horizon-btn.active');
             const months = parseInt(activeBtn?.dataset.months) || 3;
             const customIncome = parseAmount($('simulatorCustomIncome')?.value) || 0;
-            const sim = FinancialEngine.simulateFinances(AppState, months, customIncome);
+            const extraExpense = parseAmount($('simulatorExtraExpense')?.value) || 0;
+            const _appStateConExtra = extraExpense > 0 ? {
+                ...AppState,
+                recurringExpenses: [...(AppState.recurringExpenses || []), {
+                    id: -1, description: 'Gasto hipotético', amount: extraExpense,
+                    category: 'outros', archived: false, variable: false
+                }]
+            } : AppState;
+            const sim = FinancialEngine.simulateFinances(_appStateConExtra, months, customIncome);
             $('simBalance').textContent = fc(sim.finalBalance);
             $('simSavings').textContent = fc(sim.finalSavings);
             if ($('simulatorBase') && sim.simulationBase) {
@@ -6413,7 +6644,45 @@
                     const id = await Database.add('incomes', data);
                     AppState.incomes.push({ ...data, id });
                 }
-                closeModal('incomeModal'); updateAllUI(); runTests(); toast(data.incomeType === 'extra' ? 'Ingreso extra repartido 🎁' : 'Ingreso gardado ✓');
+                closeModal('incomeModal'); updateAllUI(); runTests();
+                if (data.incomeType === 'regular') {
+                    // Modo post-nómina
+                    const _r = FinancialEngine.calculateAvailableToday(AppState);
+                    const _fixosPendentes = (AppState.recurringExpenses || [])
+                        .filter(rec => rec && !rec.archived && !isRecurringPaidThisPeriod(rec))
+                        .reduce((s, rec) => s + (parseFloat(rec.amount) || 0), 0);
+                    const _aforrosPendentes = r2((_r?.breakdown?.dailySavingsAmount || 0) * (_r?.periodInfo?.remainingDays || 0));
+                    const _paraGastar = r2(data.amount - _fixosPendentes - _aforrosPendentes);
+                    const overlay = document.createElement('div');
+                    overlay.className = 'modal-overlay active';
+                    overlay.innerHTML = `
+                        <div class="modal" style="max-width:320px;">
+                            <div class="modal-header">
+                                <h3 class="modal-title">💰 Cobraches ${fc(data.amount)}!</h3>
+                                <button class="modal-close" onclick="this.closest('.modal-overlay').remove()">×</button>
+                            </div>
+                            <p style="color:var(--text-secondary);font-size:0.85rem;margin-bottom:16px;">Así che recomendo distribuílo este período:</p>
+                            <div style="display:flex;flex-direction:column;gap:10px;">
+                                <div style="display:flex;justify-content:space-between;padding:10px;background:rgba(255,110,199,0.08);border-radius:8px;border-left:3px solid var(--accent-pink);">
+                                    <span style="color:var(--text-secondary);font-size:0.9rem;">📌 Reserva para fixos</span>
+                                    <span style="color:var(--accent-pink);font-weight:700;">${fc(_fixosPendentes)}</span>
+                                </div>
+                                <div style="display:flex;justify-content:space-between;padding:10px;background:rgba(168,85,247,0.08);border-radius:8px;border-left:3px solid var(--accent-purple);">
+                                    <span style="color:var(--text-secondary);font-size:0.9rem;">🎯 Reserva para aforros</span>
+                                    <span style="color:var(--accent-purple);font-weight:700;">${fc(_aforrosPendentes)}</span>
+                                </div>
+                                <div style="display:flex;justify-content:space-between;padding:10px;background:rgba(57,255,20,0.08);border-radius:8px;border-left:3px solid var(--accent-green);">
+                                    <span style="color:var(--text-secondary);font-size:0.9rem;">💵 Queda para gastar</span>
+                                    <span style="color:${_paraGastar >= 0 ? 'var(--accent-green)' : '#ff4757'};font-weight:700;">${fc(_paraGastar)}</span>
+                                </div>
+                            </div>
+                            <button class="btn btn-primary" style="width:100%;margin-top:16px;" onclick="this.closest('.modal-overlay').remove()">Entendido ✓</button>
+                        </div>`;
+                    document.body.appendChild(overlay);
+                    overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+                } else {
+                    toast('Ingreso extra repartido 🎁');
+                }
             } catch (err) {
                 toast('Erro ao gardar ingreso: ' + err.message, 'error');
             } finally {
@@ -7992,6 +8261,8 @@
             AppState.debts = d.debts || []; AppState.transfers = d.transfers || []; AppState.notifications = d.notifications || [];
             AppState.calendarEvents = d.calendarEvents || [];
             AppState.priceHistory = d.priceHistory || [];
+            AppState.periodHistory = await Database.getAll('periodHistory');
+            AppState.annualExpenses = await Database.getAll('annualExpenses');
             // Cargar payDay desde localStorage
             const localPayDay = parseInt(localStorage.getItem('cartinos_payDay'));
             if (localPayDay) {
@@ -8181,6 +8452,7 @@
                 $('btnNewIncome')?.addEventListener('click', () => openModal('incomeModal'));
                 $('btnNewExpense')?.addEventListener('click', () => openModal('expenseModal'));
                 $('btnNewRecurring')?.addEventListener('click', () => openModal('recurringModal'));
+                $('btnNewAnnual')?.addEventListener('click', () => openAnnualModal());
                 $('btnNewSavings')?.addEventListener('click', () => openModal('savingsModal'));
                 $('btnNewDebt')?.addEventListener('click', () => {
                     const f = $('debtForm'); if (f) { f.reset(); f.editId.value = ''; }
