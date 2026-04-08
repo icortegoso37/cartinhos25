@@ -7118,9 +7118,10 @@
             const remainingDays = r?.periodInfo?.remainingDays || 1;
             const totalAvailable = r?.totalAvailable || 0;
 
-            // O que quedaría DESPOIS do gasto
-            const afterToday = r2(availableToday - amount);
+                        // O que quedaría DESPOIS do gasto
             const afterPeriod = r2(totalAvailable - amount);
+            const dailySavingsAmount = r?.breakdown?.dailySavingsAmount || 0;
+            const newDailyAvailable = r2(afterPeriod / remainingDays - dailySavingsAmount);
             const daysConsumed = dailyAvailable > 0 ? r2(amount / dailyAvailable) : 0;
 
             const canAffordToday = amount <= availableToday;
@@ -7147,18 +7148,19 @@
                     <div style="font-family:'Orbitron',monospace;font-size:0.9rem;color:${color};margin-top:6px;">${verdict}</div>
                 </div>
                 <div style="display:grid;gap:8px;">
+                                        <div style="display:flex;justify-content:space-between;font-size:0.85rem;">
+                        <span style="color:var(--text-secondary);">Quedaríache no período</span>
+                        <span style="font-family:'Orbitron',monospace;color:${afterPeriod >= 0 ? 'var(--accent-green)' : '#ff4757'};">${fc(afterPeriod)}</span>
+                    </div>
                     <div style="display:flex;justify-content:space-between;font-size:0.85rem;">
-                        <span style="color:var(--text-secondary);">Quedaríache hoxe</span>
-                        <span style="color:${afterToday >= 0 ? 'var(--accent-green)' : '#ff4757'};font-family:'Orbitron',monospace;">${fc(afterToday)}</span>
+                        <span style="color:var(--text-secondary);">Novo dispoñible/día</span>
+                        <span style="font-family:'Orbitron',monospace;color:${newDailyAvailable >= 0 ? 'var(--accent-cyan)' : '#ff4757'};">${fc(newDailyAvailable)}</span>
                     </div>
                     <div style="display:flex;justify-content:space-between;font-size:0.85rem;">
                         <span style="color:var(--text-secondary);">Días de marxe que consume</span>
                         <span style="font-family:'Orbitron',monospace;color:var(--accent-cyan);">${daysConsumed.toFixed(1)} días</span>
                     </div>
-                    <div style="display:flex;justify-content:space-between;font-size:0.85rem;">
-                        <span style="color:var(--text-secondary);">Quedaríache no período</span>
-                        <span style="font-family:'Orbitron',monospace;color:${afterPeriod >= 0 ? 'var(--accent-green)' : '#ff4757'};">${fc(afterPeriod)}</span>
-                    </div>
+
                     ${goalsAtRisk.length ? `
                     <div style="margin-top:6px;padding:8px;background:rgba(255,71,87,0.1);border-radius:8px;font-size:0.8rem;color:#ff4757;">
                         ⚠️ Metas en risco: ${goalsAtRisk.map(g => escapeHtml(g.name)).join(', ')}
