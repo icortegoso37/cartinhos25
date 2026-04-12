@@ -1767,6 +1767,14 @@
                         <div class="info-label">Resiliencia</div>
                         <div class="info-value" id="kpiResilience" style="color:var(--accent-cyan);">—</div>
                     </div>
+                    <div class="info-item" style="grid-column: span 3;">
+                        <div class="info-label">🏝️ Independencia Financeira</div>
+                        <div class="info-value" id="kpiFIDate" style="color:var(--accent-purple);font-size:0.8rem;">—</div>
+                    </div>
+                    <div class="info-item" style="grid-column: span 3;">
+                        <div class="info-label">📈 Deriva de Estilo de Vida</div>
+                        <div class="info-value" id="kpiLifestyleDrift" style="color:var(--accent-yellow);font-size:0.8rem;">—</div>
+                    </div>
                 </div>
             </div>
             <div class="card">
@@ -4728,6 +4736,161 @@
                 elCS.textContent = ratioConsciente !== null ? ratioConsciente.toFixed(1) + '%' : '—';
                 elCS.style.color = ratioConsciente === null ? 'var(--accent-purple)' : ratioConsciente < 20 ? '#ff4757' : ratioConsciente < 40 ? 'var(--accent-yellow)' : 'var(--accent-purple)';
                 elCS.parentElement.querySelector('.info-label').title = '% do fluxo total que sae de decisións activas (variables) vs compromisos automáticos (fixos + débedas)';
+            }
+
+            // DERIVA DE ESTILO DE VIDA
+            const elLD = $('kpiLifestyleDrift');
+            if (elLD) {
+                const _sortedPH_ld = (AppState.periodHistory || [])
+                    .sort((a, b) => new Date(a.closedAt) - new Date(b.closedAt));
+
+                if (_sortedPH_ld.length >= 4) {
+                    // Dividir en dous bloques: primeiros 50% vs últimos 50%
+                    const _mid = Math.floor(_sortedPH_ld.length / 2);
+                    const _old = _sortedPH_ld.slice(0, _mid);
+                    const _recent = _sortedPH_ld.slice(-_mid);
+
+                    // Ingresos medios
+                    const _avgIncomeOld = r2(_old.reduce((s, p) => s + (parseFloat(p.totalIncomes)||0), 0) / _old.length);
+                    const _avgIncomeRecent = r2(_recent.reduce((s, p) => s + (parseFloat(p.totalIncomes)||0), 0) / _recent.length);
+
+                    // Gastos NON esenciais medios (variables = totalExpenses, sen fixos)
+                    const _avgVarOld = r2(_old.reduce((s, p) => s + (parseFloat(p.totalExpenses)||0), 0) / _old.length);
+                    const _avgVarRecent = r2(_recent.reduce((s, p) => s + (parseFloat(p.totalExpenses)||0), 0) / _recent.length);
+
+                    if (_avgIncomeOld > 0 && _avgVarOld > 0) {
+                        const _incomeDrift = r2((_avgIncomeRecent - _avgIncomeOld) / _avgIncomeOld * 100);
+                        const _expenseDrift = r2((_avgVarRecent - _avgVarOld) / _avgVarOld * 100);
+                        const _gap = r2(_expenseDrift - _incomeDrift);
+
+                        const _incomeSign = _incomeDrift >= 0 ? '+' : '';
+                        const _expSign = _expenseDrift >= 0 ? '+' : '';
+                        const _gapSign = _gap >= 0 ? '+' : '';
+
+                        let _driftColor, _driftLabel;
+                        if (_gap > 15) {
+                            _driftColor = '#ff4757';
+                            _driftLabel = '⚠️ Deriva significativa';
+                        } else if (_gap > 5) {
+                            _driftColor = 'var(--accent-yellow)';
+                            _driftLabel = '🔶 Leve deriva';
+                        } else if (_gap < -5) {
+                            _driftColor = 'var(--accent-green)';
+                            _driftLabel = '✅ Mellora de hábitos';
+                        } else {
+                            _driftColor = 'var(--accent-cyan)';
+                            _driftLabel = '➡️ Estable';
+                        }
+
+                        elLD.innerHTML = `
+                            <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+                                <span style="color:var(--accent-green);font-size:0.75rem;">Ingresos: ${_incomeSign}${_incomeDrift.toFixed(0)}%</span>
+                                <span style="color:var(--accent-pink);font-size:0.75rem;">Gasto var: ${_expSign}${_expenseDrift.toFixed(0)}%</span>
+                                <span style="color:${_driftColor};font-size:0.75rem;font-weight:700;">${_gapSign}${_gap.toFixed(0)}% deriva</span>
+                            </div>
+                            <div style="font-size:0.72rem;color:${_driftColor};">${_driftLabel}</div>`;
+                        elLD.style.fontSize = '0.75rem';
+                        elLD.parentElement.querySelector('.info-label').title =
+                            `Comparando primeiros ${_mid} períodos vs últimos ${_mid}. Deriva = variación gasto - variación ingresos. Positivo = gastas máis proporcionalmente do que gañas.`;
+
+                        // Engadir como patrón en Análise se a deriva é significativa
+                        if (Math.abs(_gap) > 5 && AppState.detectedPatterns) {
+                            const _exists = AppState.detectedPatterns.some(p => p.title === 'Deriva de estilo de vida');
+                            if (!_exists) {
+                                AppState.detectedPatterns.unshift({
+                                    icon: _gap > 5 ? '📈' : '📉',
+                                    title: 'Deriva de estilo de vida',
+                                    description: _gap > 5
+                                        ? `Os teus gastos variables medraron un ${_expSign}${_expenseDrift.toFixed(0)}% mentres os ingresos só o fixeron un ${_incomeSign}${_incomeDrift.toFixed(0)}%. Estás gastando proporcionalmente máis do que gañas.`
+                                        : `Os teus gastos variables baixaron un ${Math.abs(_expenseDrift).toFixed(0)}% mentres os ingresos medraron un ${_incomeSign}${_incomeDrift.toFixed(0)}%. Os teus hábitos están mellorando.`,
+                                    amount: null
+                                });
+                            }
+                        }
+                    } else {
+                        elLD.textContent = 'Sen datos suficientes';
+                    }
+                } else {
+                    elLD.textContent = 'Necesitas 4+ períodos pechados';
+                    elLD.parentElement.querySelector('.info-label').title = 'Compara a evolución dos teus ingresos vs gastos ao longo do tempo';
+                }
+            }
+
+            // INDEPENDENCIA FINANCEIRA
+            const elFI = $('kpiFIDate');
+            if (elFI) {
+                const _sortedPH_fi = (AppState.periodHistory || [])
+                    .sort((a, b) => new Date(b.closedAt) - new Date(a.closedAt))
+                    .slice(0, 6);
+
+                if (_sortedPH_fi.length >= 2) {
+                    // Aforro real por período (balance = ingresos - variables - fixos)
+                    const _avgSavings = r2(_sortedPH_fi.reduce((s, p) =>
+                        s + Math.max(0, (parseFloat(p.balance) || 0)), 0) / _sortedPH_fi.length);
+
+                    // Gasto mensual total medio (variables + fixos)
+                    const _avgTotalExpense = r2(_sortedPH_fi.reduce((s, p) =>
+                        s + (parseFloat(p.totalExpenses) || 0) + (parseFloat(p.totalFixed) || 0), 0) / _sortedPH_fi.length);
+
+                    // Patrimonio neto actual
+                    const _saldoFI = FinancialEngine.calculateTotalBalance(AppState.accounts);
+                    const _deudaFI = (AppState.debts || [])
+                        .filter(d => d && d.direction === 'owe')
+                        .reduce((s, d) => s + Math.max(0, (parseFloat(d.amount)||0) - (parseFloat(d.paidAmount)||0)), 0);
+                    const _patrimonioFI = r2(_saldoFI - _deudaFI);
+
+                    // Obxectivo IF = 25 × gasto anual (regra do 4%)
+                    // Convertemos períodos a meses estimando por duración media
+                    const _avgPeriodDays = _sortedPH_fi.length >= 1 ? r2(_sortedPH_fi.reduce((s, p) => {
+                        const days = Math.ceil((new Date(p.periodEnd) - new Date(p.periodStart)) / (1000 * 60 * 60 * 24));
+                        return s + days;
+                    }, 0) / _sortedPH_fi.length) : 30;
+                    const _monthFactor = r2(30 / _avgPeriodDays);
+                    const _monthlyExpense = r2(_avgTotalExpense * _monthFactor);
+                    const _monthlySavings = r2(_avgSavings * _monthFactor);
+                    const _ifTarget = r2(_monthlyExpense * 12 * 25);
+
+                    if (_monthlySavings > 0 && _ifTarget > 0) {
+                        const _gap = Math.max(0, _ifTarget - _patrimonioFI);
+                        const _monthsToIF = Math.ceil(_gap / _monthlySavings);
+                        const _ifDate = new Date();
+                        _ifDate.setMonth(_ifDate.getMonth() + _monthsToIF);
+                        const _years = Math.floor(_monthsToIF / 12);
+                        const _months = _monthsToIF % 12;
+                        const _dateStr = _ifDate.toLocaleDateString('gl-ES', { month: 'long', year: 'numeric' });
+
+                        let _timeStr = '';
+                        if (_years > 0) _timeStr += `${_years}a `;
+                        if (_months > 0) _timeStr += `${_months}m`;
+                        if (!_timeStr) _timeStr = '¡Xa!';
+
+                        const _progress = Math.min(100, r2(_patrimonioFI / _ifTarget * 100));
+
+                        elFI.innerHTML = `
+                            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                                <span style="color:var(--accent-purple);font-family:'Orbitron',monospace;font-size:0.85rem;">${_dateStr}</span>
+                                <span style="color:var(--text-muted);font-size:0.75rem;">en ${_timeStr}</span>
+                            </div>
+                            <div style="background:rgba(255,255,255,0.08);border-radius:20px;height:6px;overflow:hidden;margin-bottom:4px;">
+                                <div style="height:100%;width:${_progress}%;background:var(--accent-purple);border-radius:20px;transition:width 0.5s;"></div>
+                            </div>
+                            <div style="display:flex;justify-content:space-between;font-size:0.68rem;color:var(--text-muted);">
+                                <span>${fc(_patrimonioFI)} de ${fc(_ifTarget)}</span>
+                                <span>${_progress.toFixed(1)}% · aforro ${fc(_monthlySavings)}/mes</span>
+                            </div>`;
+                        elFI.style.fontSize = '0.75rem';
+                        elFI.parentElement.querySelector('.info-label').title =
+                            `Regra do 4%: necesitas ${fc(_ifTarget)} (25× gasto anual de ${fc(_monthlyExpense * 12)}) para ser financeiramente independente ao teu ritmo actual de aforro.`;
+                    } else if (_monthlySavings <= 0) {
+                        elFI.textContent = 'Sen aforro neto nos últimos períodos';
+                        elFI.style.color = '#ff4757';
+                    } else {
+                        elFI.textContent = '—';
+                    }
+                } else {
+                    elFI.textContent = 'Necesitas 2+ períodos pechados';
+                    elFI.parentElement.querySelector('.info-label').title = 'Pecha períodos para activar esta proxección';
+                }
             }
 
             // F32. VELOCIDADE DE RECUPERACIÓN FINANCEIRA
@@ -9366,13 +9529,15 @@
 
         async function exportJSON() {
             const data = {
-                version: '4.0.0',
+                version: '5.0.0',
                 exportedAt: new Date().toISOString(),
                 payDay: AppState.payDay,
                 alertsConfig: AppState.alertsConfig,
                 extremeSavingMode: AppState.extremeSavingMode,
                 travelMode: AppState.travelMode,
-                hourlyRate: AppState.hourlyRate, categories: {
+                hourlyRate: AppState.hourlyRate,
+                scoreHistory: AppState.scoreHistory || {},
+                categories: {
                     expense: loadCategories('expense'),
                     income: loadCategories('income'),
                     recurring: loadCategories('recurring')
@@ -9386,7 +9551,10 @@
                 transfers: AppState.transfers,
                 calendarEvents: AppState.calendarEvents || [],
                 priceHistory: AppState.priceHistory || [],
+                annualExpenses: await Database.getAll('annualExpenses'),
                 periodHistory: await Database.getAll('periodHistory'),
+                financialPacts: await Database.getAll('financialPacts'),
+                financialMilestones: await Database.getAll('financialMilestones'),
                 notifications: AppState.notifications || []
             };
             const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
@@ -9790,6 +9958,9 @@
                 for (const c of (data.calendarEvents || [])) { delete c.id; await Database.add('calendarEvents', c); }
                 for (const p of (data.priceHistory || [])) { delete p.id; await Database.add('priceHistory', p); }
                 for (const ph of (data.periodHistory || [])) { delete ph.id; await Database.add('periodHistory', ph); }
+                for (const ae of (data.annualExpenses || [])) { delete ae.id; await Database.add('annualExpenses', ae); }
+                for (const fp of (data.financialPacts || [])) { delete fp.id; await Database.add('financialPacts', fp); }
+                for (const fm of (data.financialMilestones || [])) { delete fm.id; await Database.add('financialMilestones', fm); }
                 for (const n of (data.notifications || [])) { delete n.id; await Database.add('notifications', n); }
 
                 if (data.categories) {
@@ -9802,6 +9973,7 @@
                 if (data.extremeSavingMode) AppState.extremeSavingMode = data.extremeSavingMode;
                 if (data.travelMode) AppState.travelMode = data.travelMode;
                 if (data.hourlyRate) AppState.hourlyRate = data.hourlyRate;
+                if (data.scoreHistory) AppState.scoreHistory = data.scoreHistory;
                 await saveAppConfig();
                 await loadData();
                 updateAllUI();
