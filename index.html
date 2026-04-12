@@ -687,7 +687,7 @@
             bottom: 0;
             align-items: center;
             padding: 0 8px;
-            background: linear-gradient(270deg, transparent, rgba(255,71,87,0.3) 30%);
+            background: linear-gradient(270deg, transparent, rgba(255, 71, 87, 0.3) 30%);
             opacity: 0;
             pointer-events: none;
             transition: opacity 0.25s ease;
@@ -1143,13 +1143,23 @@
         }
 
         @keyframes piggyPull {
-            from { transform: translateY(0) rotate(-5deg); }
-            to { transform: translateY(8px) rotate(5deg); }
+            from {
+                transform: translateY(0) rotate(-5deg);
+            }
+
+            to {
+                transform: translateY(8px) rotate(5deg);
+            }
         }
 
         @keyframes piggySpin {
-            from { transform: rotate(0deg) scale(1.2); }
-            to { transform: rotate(360deg) scale(1.2); }
+            from {
+                transform: rotate(0deg) scale(1.2);
+            }
+
+            to {
+                transform: rotate(360deg) scale(1.2);
+            }
         }
 
         select.form-select {
@@ -1405,7 +1415,7 @@
             <button class="nav-tab" data-section="analysis">Análise</button>
             <button class="nav-tab" data-section="calendar">Calendario</button>
             <button class="nav-tab" data-section="tools">Ferramentas</button>
-                <button class="nav-tab" data-section="settings">Axustes</button>
+            <button class="nav-tab" data-section="settings">Axustes</button>
         </nav>
         <!-- SECTIONS -->
         <section class="section active" id="section-dashboard">
@@ -1440,7 +1450,8 @@
                         <div class="stat-label">Patrimonio neto</div>
                     </div>
                     <div style="text-align:center;padding:8px;background:rgba(168,85,247,0.08);border-radius:8px;">
-                        <div class="stat-value" style="color:var(--accent-purple);font-size:1rem;" id="statFreedomMonths">
+                        <div class="stat-value" style="color:var(--accent-purple);font-size:1rem;"
+                            id="statFreedomMonths">
                             —</div>
                         <div class="stat-label">Marxe de Liberdade</div>
                     </div>
@@ -1450,16 +1461,19 @@
                 <div class="card-header">
                     <h2 class="card-title">⚡ Velocidade de Gasto</h2>
                 </div>
-                <div id="velocidadeGasto" style="display:flex;justify-content:space-around;align-items:center;padding:8px 0;">
+                <div id="velocidadeGasto"
+                    style="display:flex;justify-content:space-around;align-items:center;padding:8px 0;">
                     <div style="text-align:center;">
                         <div style="color:var(--text-muted);font-size:0.75rem;margin-bottom:4px;">Esta semana</div>
-                        <div id="vgEstaSemana" style="color:var(--accent-cyan);font-weight:700;font-size:1.1rem;">—</div>
+                        <div id="vgEstaSemana" style="color:var(--accent-cyan);font-weight:700;font-size:1.1rem;">—
+                        </div>
                         <div style="color:var(--text-muted);font-size:0.7rem;">€/día</div>
                     </div>
                     <div id="vgDiferenza" style="text-align:center;font-size:1.3rem;">—</div>
                     <div style="text-align:center;">
                         <div style="color:var(--text-muted);font-size:0.75rem;margin-bottom:4px;">Semana pasada</div>
-                        <div id="vgSemanaPasada" style="color:var(--text-secondary);font-weight:700;font-size:1.1rem;">—</div>
+                        <div id="vgSemanaPasada" style="color:var(--text-secondary);font-weight:700;font-size:1.1rem;">—
+                        </div>
                         <div style="color:var(--text-muted);font-size:0.7rem;">€/día</div>
                     </div>
                 </div>
@@ -1558,11 +1572,12 @@
                     </div>
                 </div>
                 <div id="expensesCollapsible" style="display:none;">
-                   <div style="margin-bottom:15px;">
-                    <input type="text" class="form-input" id="expenseSearchInput" placeholder="🔍 Buscar gastos..." inputmode="text">
-                </div>
-                <div id="expenseResultsList"></div>
-                <div id="expensesList" style="display:none;"></div>
+                    <div style="margin-bottom:15px;">
+                        <input type="text" class="form-input" id="expenseSearchInput" placeholder="🔍 Buscar gastos..."
+                            inputmode="text">
+                    </div>
+                    <div id="expenseResultsList"></div>
+                    <div id="expensesList" style="display:none;"></div>
                 </div>
             </div>
         </section>
@@ -1585,7 +1600,8 @@
                     <h2 class="card-title">📅 Gastos Anuais</h2>
                     <button class="btn btn-primary" id="btnNewAnnual">+ Novo</button>
                 </div>
-                <p style="color:var(--text-muted);margin-bottom:12px;font-size:0.8rem;">ℹ️ Reserva gradualmente para gastos grandes coñecidos</p>
+                <p style="color:var(--text-muted);margin-bottom:12px;font-size:0.8rem;">ℹ️ Reserva gradualmente para
+                    gastos grandes coñecidos</p>
                 <div id="annualExpensesList">
                     <div class="empty-state">
                         <div class="empty-state-icon">📅</div>
@@ -1699,6 +1715,82 @@
                         <div class="info-label">Inflación Persoal</div>
                         <div class="info-value" id="kpiPersonalInflation" style="color:var(--accent-yellow);">—</div>
                     </div>
+                    <div class="info-item">
+                        <div class="info-label">Horas Traballadas Hoxe</div>
+                        <div class="info-value" id="kpiHoursToday" style="color:var(--accent-cyan);">—</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Ratio Supervivencia</div>
+                        <div class="info-value" id="kpiSurvivalRatio" style="color:var(--accent-green);">—</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Eficiencia Aforro</div>
+                        <div class="info-value" id="kpiSavingsEfficiency" style="color:var(--accent-purple);">—</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Marxe Seguridade</div>
+                        <div class="info-value" id="kpiSafetyMargin" style="color:var(--accent-cyan);">—</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Fiabilidade Datos</div>
+                        <div class="info-value" id="kpiDataReliability" style="color:var(--accent-green);">—</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Creep Subscricións</div>
+                        <div class="info-value" id="kpiSubscriptionCreep" style="color:var(--accent-pink);">—</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Impredicibilidade</div>
+                        <div class="info-value" id="kpiUnpredictability" style="color:var(--accent-yellow);">—</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Rendemento vs Media</div>
+                        <div class="info-value" id="kpiPeriodPerformance" style="color:var(--accent-cyan);">—</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Vulnerabilidade Fin</div>
+                        <div class="info-value" id="kpiEndVulnerability" style="color:var(--accent-pink);">—</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Estrés Financeiro</div>
+                        <div class="info-value" id="kpiFinancialStress" style="color:var(--accent-orange);">—</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Estabilidade (IEF)</div>
+                        <div class="info-value" id="kpiStabilityIndex" style="color:var(--accent-cyan);">—</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Benestar Global</div>
+                        <div class="info-value" id="kpiWellbeing" style="color:var(--accent-green);">—</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Resiliencia</div>
+                        <div class="info-value" id="kpiResilience" style="color:var(--accent-cyan);">—</div>
+                    </div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">📅 Compromisos Futuros</h2>
+                </div>
+                <div id="futureCommitments">
+                    <div class="empty-state"><div class="empty-state-icon">📅</div><p>Sen datos suficientes</p></div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">📊 Presuposto Dinámico</h2>
+                </div>
+                <div id="dynamicBudget">
+                    <div class="empty-state"><div class="empty-state-icon">📊</div><p>Necesítanse 3+ períodos pechados</p></div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">🪞 Espello de Hábitos</h2>
+                </div>
+                <div id="habitMirror">
+                    <div class="empty-state"><div class="empty-state-icon">🪞</div><p>Necesítanse 2+ períodos pechados</p></div>
                 </div>
             </div>
             <div class="card">
@@ -1770,7 +1862,8 @@
                 <div class="card-header">
                     <h2 class="card-title">💎 Evolución do Patrimonio Neto</h2>
                 </div>
-                <div id="netWorthChartInfo" style="font-size:0.75rem;color:var(--text-muted);margin-bottom:8px;text-align:center;"></div>
+                <div id="netWorthChartInfo"
+                    style="font-size:0.75rem;color:var(--text-muted);margin-bottom:8px;text-align:center;"></div>
                 <div class="chart-container" style="height:200px;"><canvas id="netWorthChart"></canvas></div>
             </div>
             <div class="card">
@@ -1799,6 +1892,15 @@
                     <h2 class="card-title">📊 Saúde Financeira</h2>
                 </div>
                 <div id="healthScoreDisplay" style="text-align:center;padding:20px 0;"></div>
+            </div>
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">📖 Historia Financeira</h2>
+                    <button class="btn btn-secondary" style="padding:4px 10px;font-size:0.75rem;min-height:32px;" onclick="openNewMilestoneModal()">+ Fito</button>
+                </div>
+                <div id="financialTimeline">
+                    <div class="empty-state"><div class="empty-state-icon">📖</div><p>O teu historial aparecerá aquí</p></div>
+                </div>
             </div>
         </section>
 
@@ -1913,10 +2015,10 @@
                         onchange="updateSimulator()">
                 </div>
                 <div class="form-group" style="margin-bottom:10px;">
-                    <label class="form-label" style="font-size:0.75rem;">💸 Novo gasto fixo hipotético (opcional — ex: coche a prazos, ximnasio...)</label>
-                    <input type="number" class="form-input" id="simulatorExtraExpense"
-                        placeholder="Ex: 200 € / mes" step="0.01" inputmode="decimal"
-                        onchange="updateSimulator()">
+                    <label class="form-label" style="font-size:0.75rem;">💸 Novo gasto fixo hipotético (opcional — ex:
+                        coche a prazos, ximnasio...)</label>
+                    <input type="number" class="form-input" id="simulatorExtraExpense" placeholder="Ex: 200 € / mes"
+                        step="0.01" inputmode="decimal" onchange="updateSimulator()">
                 </div>
                 <div id="simulatorBase"
                     style="margin-bottom:10px;padding:8px 12px;background:rgba(0,245,255,0.06);border-radius:8px;font-size:0.75rem;color:var(--text-muted);">
@@ -1957,6 +2059,16 @@
                         <div class="empty-state-icon">📚</div>
                         <p>Sen períodos pechados</p>
                     </div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">🤝 Pactos Financeiros</h2>
+                    <button class="btn btn-primary" id="btnNewPact">+ Novo</button>
+                </div>
+                <p style="color:var(--text-muted);margin-bottom:12px;font-size:0.8rem;">Define regras propias e a app rastrexa se as cumpres.</p>
+                <div id="pactsList">
+                    <div class="empty-state"><div class="empty-state-icon">🤝</div><p>Sen pactos definidos</p></div>
                 </div>
             </div>
             <div class="card">
@@ -2217,21 +2329,30 @@
                 </div>
                 <div class="form-row">
                     <div class="form-group"><label class="form-label">Cantidade</label><input type="number"
-                            class="form-input" name="amount" placeholder="0.00" step="0.01" inputmode="decimal"
-                            required id="expenseAmountInput">
-                        <div id="expenseImpactPreview" style="display:none;margin-top:6px;padding:6px 10px;background:rgba(0,245,255,0.08);border-radius:8px;font-size:0.78rem;color:var(--text-secondary);"></div>
+                            class="form-input" name="amount" placeholder="0.00" step="0.01" inputmode="decimal" required
+                            id="expenseAmountInput">
+                        <div id="expenseImpactPreview"
+                            style="display:none;margin-top:6px;padding:6px 10px;background:rgba(0,245,255,0.08);border-radius:8px;font-size:0.78rem;color:var(--text-secondary);">
+                        </div>
                     </div>
-                <div id="splitPanel" style="display:none;margin-top:8px;padding:10px;background:rgba(168,85,247,0.08);border-radius:8px;border:1px solid rgba(168,85,247,0.3);">
-                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-                        <span style="color:var(--accent-purple);font-size:0.85rem;font-weight:600;">✂️ Dividir gasto</span>
-                        <span id="splitRemaining" style="font-size:0.8rem;color:var(--text-muted);">Restante: 0,00€</span>
+                    <div id="splitPanel"
+                        style="display:none;margin-top:8px;padding:10px;background:rgba(168,85,247,0.08);border-radius:8px;border:1px solid rgba(168,85,247,0.3);">
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                            <span style="color:var(--accent-purple);font-size:0.85rem;font-weight:600;">✂️ Dividir
+                                gasto</span>
+                            <span id="splitRemaining" style="font-size:0.8rem;color:var(--text-muted);">Restante:
+                                0,00€</span>
+                        </div>
+                        <div id="splitLines"></div>
+                        <button type="button" onclick="addSplitLine()"
+                            style="width:100%;padding:6px;margin-top:6px;background:rgba(168,85,247,0.15);border:1px dashed rgba(168,85,247,0.4);border-radius:6px;color:var(--accent-purple);font-size:0.8rem;cursor:pointer;">+
+                            Engadir liña</button>
                     </div>
-                    <div id="splitLines"></div>
-                    <button type="button" onclick="addSplitLine()" style="width:100%;padding:6px;margin-top:6px;background:rgba(168,85,247,0.15);border:1px dashed rgba(168,85,247,0.4);border-radius:6px;color:var(--accent-purple);font-size:0.8rem;cursor:pointer;">+ Engadir liña</button>
-                </div>
-                <div style="margin-top:6px;">
-                    <button type="button" onclick="toggleSplitPanel()" id="btnSplit" style="width:100%;padding:6px;background:transparent;border:1px solid rgba(168,85,247,0.3);border-radius:6px;color:var(--accent-purple);font-size:0.8rem;cursor:pointer;">✂️ Dividir en categorías</button>
-                </div>
+                    <div style="margin-top:6px;">
+                        <button type="button" onclick="toggleSplitPanel()" id="btnSplit"
+                            style="width:100%;padding:6px;background:transparent;border:1px solid rgba(168,85,247,0.3);border-radius:6px;color:var(--accent-purple);font-size:0.8rem;cursor:pointer;">✂️
+                            Dividir en categorías</button>
+                    </div>
                     <div class="form-group"><label class="form-label">Data</label><input type="date" class="form-input"
                             name="date" required></div>
                 </div>
@@ -2570,7 +2691,7 @@
                 const ts = calculateTotalSavings(data.savingsGoals);
                 const today = getEffectiveDate(); today.setHours(0, 0, 0, 0);
 
-  const monthlyIncomes = (() => {
+                const monthlyIncomes = (() => {
                     const found = [];
                     for (let i = 1; i <= 12; i++) {
                         const m = new Date(today.getFullYear(), today.getMonth() - i, 1);
@@ -2590,7 +2711,7 @@
                         }).reduce((s, x) => s + (parseFloat(x.amount) || 0), 0);
                     }
                     return r2(found.reduce((s, x) => s + x, 0) / found.length);
-                })();                const finalMonthlyIncomes = (customIncome && customIncome > 0) ? customIncome : monthlyIncomes;
+                })(); const finalMonthlyIncomes = (customIncome && customIncome > 0) ? customIncome : monthlyIncomes;
 
                 const fixedExpensesNow = (data.recurringExpenses || []).reduce((s, e) => s + (parseFloat(e.amount) || 0), 0);
                 const fixedLast3 = (() => {
@@ -2610,12 +2731,20 @@
                 })();
                 const fixedExpenses = fixedLast3;
 
-                   const variableExpenses = (() => {
+                const variableExpenses = (() => {
+                    // Excluír gastos que son fixos rexistrados (por descrición) e transferencias
+                    const recNames = new Set((data.recurringExpenses || []).map(r => r.description.toLowerCase().trim()));
+                    const isVariable = x => {
+                        if (!x || !x.date || x.extraordinary) return false;
+                        if (recNames.has((x.description || '').toLowerCase().trim())) return false;
+                        if (x.category === 'transferencia') return false;
+                        return true;
+                    };
                     const found = [];
                     for (let i = 1; i <= 12; i++) {
                         const m = new Date(today.getFullYear(), today.getMonth() - i, 1);
                         const total = (data.expenses || []).filter(x => {
-                            if (!x || !x.date || x.extraordinary) return false;
+                            if (!isVariable(x)) return false;
                             const d = new Date(x.date); d.setHours(0, 0, 0, 0);
                             return d.getMonth() === m.getMonth() && d.getFullYear() === m.getFullYear();
                         }).reduce((s, x) => s + (parseFloat(x.amount) || 0), 0);
@@ -2625,13 +2754,13 @@
                     if (found.length === 0) {
                         // Intentar con mes actual
                         const currentMonthTotal = (data.expenses || []).filter(x => {
-                            if (!x || !x.date || x.extraordinary) return false;
+                            if (!isVariable(x)) return false;
                             const d = new Date(x.date); d.setHours(0, 0, 0, 0);
                             return d.getMonth() === today.getMonth() && d.getFullYear() === today.getFullYear();
                         }).reduce((s, x) => s + (parseFloat(x.amount) || 0), 0);
                         if (currentMonthTotal > 0) return currentMonthTotal;
-                        // Fallback: media de todos os gastos históricos
-                        const allExpenses = (data.expenses || []).filter(x => x && x.date && !x.extraordinary);
+                        // Fallback: media de todos os gastos variables históricos
+                        const allExpenses = (data.expenses || []).filter(isVariable);
                         if (allExpenses.length > 0) {
                             return r2(allExpenses.reduce((s, x) => s + (parseFloat(x.amount) || 0), 0) / allExpenses.length * 30);
                         }
@@ -2704,13 +2833,13 @@
 
                 // Detectar inflación persoal por categoría
                 let inflacionPhrase = '';
-                const _now = new Date(); _now.setHours(0,0,0,0);
+                const _now = new Date(); _now.setHours(0, 0, 0, 0);
                 const _cm = _now.getMonth(), _cy = _now.getFullYear();
                 const _catActual = {};
                 const _cat3m = {};
                 AppState.expenses.forEach(e => {
                     if (!e || !e.date || e.extraordinary) return;
-                    const d = parseDate(e.date); d.setHours(0,0,0,0);
+                    const d = parseDate(e.date); d.setHours(0, 0, 0, 0);
                     if (d.getMonth() === _cm && d.getFullYear() === _cy) {
                         _catActual[e.category] = (_catActual[e.category] || 0) + (parseFloat(e.amount) || 0);
                     }
@@ -2765,8 +2894,8 @@
                 // Emoji de humor baseado nos últimos 7 días
                 const _7days = AppState.expenses.filter(e => {
                     if (!e || !e.date) return false;
-                    const d = parseDate(e.date); d.setHours(0,0,0,0);
-                    const weekAgo = new Date(); weekAgo.setDate(weekAgo.getDate() - 7); weekAgo.setHours(0,0,0,0);
+                    const d = parseDate(e.date); d.setHours(0, 0, 0, 0);
+                    const weekAgo = new Date(); weekAgo.setDate(weekAgo.getDate() - 7); weekAgo.setHours(0, 0, 0, 0);
                     return d >= weekAgo;
                 }).reduce((s, e) => s + (parseFloat(e.amount) || 0), 0);
                 const _7daysBudget = r2((r.breakdown.availablePerDay || 0) * 7);
@@ -2777,7 +2906,7 @@
                 if (r.periodInfo && r.periodInfo.remainingDays > 1 && r.totalAvailable > 0) {
                     const _gastoAcum = AppState.expenses.filter(e => {
                         if (!e || !e.date || e.extraordinary) return false;
-                        const d = parseDate(e.date); d.setHours(0,0,0,0);
+                        const d = parseDate(e.date); d.setHours(0, 0, 0, 0);
                         return d >= r.periodInfo.periodStart;
                     }).reduce((s, e) => s + (parseFloat(e.amount) || 0), 0);
                     const _paraReconducir = r2((r.totalAvailable - _gastoAcum) / r.periodInfo.remainingDays - r.breakdown.dailySavingsAmount);
@@ -3060,7 +3189,7 @@
 
             // PATRÓN EXTRA: Inflación persoal real con priceHistory
             if (AppState.priceHistory && AppState.priceHistory.length >= 3) {
-                const _now = new Date(); _now.setHours(0,0,0,0);
+                const _now = new Date(); _now.setHours(0, 0, 0, 0);
                 const _6mAgo = new Date(_now); _6mAgo.setMonth(_6mAgo.getMonth() - 6);
                 const _12mAgo = new Date(_now); _12mAgo.setMonth(_12mAgo.getMonth() - 12);
                 const byProduct = {};
@@ -3124,7 +3253,7 @@
             const { periodStart } = getPeriodDates(AppState.payDay || 1);
             const _periodExpenses = AppState.expenses.filter(e => {
                 if (!e || !e.date || e.extraordinary) return false;
-                const d = parseDate(e.date); d.setHours(0,0,0,0);
+                const d = parseDate(e.date); d.setHours(0, 0, 0, 0);
                 return d >= periodStart && parseFloat(e.amount) > 5.01;
             });
             const _habitGroups = {};
@@ -3147,7 +3276,7 @@
                 if (sortedPH.length >= 2) {
                     const prevTotals = sortedPH.map(ph =>
                         (ph.expenses || []).filter(e => e && e.description && e.description.toLowerCase().trim() === desc)
-                        .reduce((s, e) => s + (parseFloat(e.amount) || 0), 0)
+                            .reduce((s, e) => s + (parseFloat(e.amount) || 0), 0)
                     ).filter(t => t > 0);
                     if (prevTotals.length >= 1) {
                         const prevAvg = r2(prevTotals.reduce((a, b) => a + b, 0) / prevTotals.length);
@@ -3241,19 +3370,13 @@
                     const type = daysUntilPayment <= 1 ? 'warning' : 'info';
                     alerts.push({ type, icon: '📅', title, text: `${rec.description}: ${fc(rec.amount)}` });
                     // Notificación na campanita para día anterior e día de vencemento
-                    if (daysUntilPayment <= 1) {
-                        const notifKey = `cartinos_notif_fijo_${rec.id}_${getEffectiveDate().toISOString().split('T')[0]}`;
-                        if (!localStorage.getItem(notifKey)) {
-                            addNotification('warning', title, `${rec.description}: ${fc(rec.amount)}`, '📅');
-                            localStorage.setItem(notifKey, '1');
-                        }
-                    }
+                    // Fixos próximos: só en Análise, non na campanita (evitar redundancia)
                 }
             });
             // Gasto inusual
             const _monthExp = AppState.expenses.filter(e => {
                 if (!e || !e.date) return false;
-                const d = parseDate(e.date); d.setHours(0,0,0,0);
+                const d = parseDate(e.date); d.setHours(0, 0, 0, 0);
                 return d.getMonth() === getEffectiveDate().getMonth() && d.getFullYear() === getEffectiveDate().getFullYear();
             });
             if (_monthExp.length > 5) {
@@ -3267,7 +3390,7 @@
             if (r.periodInfo && r.periodInfo.dayInPeriod > 20) {
                 const _ingresos = AppState.incomes.filter(i => {
                     if (!i || !i.date) return false;
-                    const d = parseDate(i.date); d.setHours(0,0,0,0);
+                    const d = parseDate(i.date); d.setHours(0, 0, 0, 0);
                     return d >= r.periodInfo.periodStart;
                 });
                 if (_ingresos.length === 0) {
@@ -3378,17 +3501,25 @@
 
         // ACTUALIZAR GASTOS FRECUENTES (de C adaptado)
         function updateFrequentExpenses() {
-            const descriptions = {};
+            const descMap = {};
             AppState.expenses.forEach(e => {
                 const desc = e.description;
-                if (desc && desc !== 'Gasto' && desc !== 'Sen descrición') {
-                    descriptions[desc] = (descriptions[desc] || 0) + 1;
-                }
+                if (!desc || desc === 'Gasto' || desc === 'Sen descrición') return;
+                if (e.extraordinary || e.category === 'transferencia') return;
+                if (!descMap[desc]) descMap[desc] = { count: 0, category: e.category, amounts: [] };
+                descMap[desc].count++;
+                descMap[desc].amounts.push(parseFloat(e.amount) || 0);
+                // Categoría: usar a máis recente (a última sobrescribe)
+                if (e.category) descMap[desc].category = e.category;
             });
-            AppState.frequentExpenses = Object.entries(descriptions)
-                .sort((a, b) => b[1] - a[1])
+            AppState.frequentExpenses = Object.entries(descMap)
+                .sort((a, b) => b[1].count - a[1].count)
                 .slice(0, 5)
-                .map(([desc]) => desc);
+                .map(([desc, data]) => ({
+                    description: desc,
+                    category: data.category || 'outros',
+                    avgAmount: data.amounts.length > 0 ? r2(data.amounts.reduce((s, a) => s + a, 0) / data.amounts.length) : 0
+                }));
         }
 
         // FILTRAR GASTOS POR BÚSQUEDA (de C adaptado)
@@ -3708,9 +3839,9 @@
         })();
         // DATABASE
         const Database = (function () {
-            const DB_NAME = 'dinheiroDB', DB_VERSION = 9;
+            const DB_NAME = 'dinheiroDB', DB_VERSION = 10;
             let db = null;
-            const STORES = ['accounts', 'incomes', 'expenses', 'recurringExpenses', 'savingsGoals', 'debts', 'transfers', 'notifications', 'calendarEvents', 'appConfig', 'periodHistory', 'priceHistory', 'annualExpenses'];
+            const STORES = ['accounts', 'incomes', 'expenses', 'recurringExpenses', 'savingsGoals', 'debts', 'transfers', 'notifications', 'calendarEvents', 'appConfig', 'periodHistory', 'priceHistory', 'annualExpenses', 'financialPacts', 'financialMilestones'];
             function open() {
                 return new Promise((resolve, reject) => {
                     const req = indexedDB.open(DB_NAME, DB_VERSION);
@@ -3753,6 +3884,15 @@
                                     d.createObjectStore('annualExpenses', { keyPath: 'id', autoIncrement: true });
                                 }
                                 console.log('Migración v9: store annualExpenses creado');
+                            }
+                            if (oldVersion < 10) {
+                                if (!d.objectStoreNames.contains('financialPacts')) {
+                                    d.createObjectStore('financialPacts', { keyPath: 'id', autoIncrement: true });
+                                }
+                                if (!d.objectStoreNames.contains('financialMilestones')) {
+                                    d.createObjectStore('financialMilestones', { keyPath: 'id', autoIncrement: true });
+                                }
+                                console.log('Migración v10: stores financialPacts e financialMilestones creados');
                             }
                         } catch (err) {
                             console.error('Erro crítico na migración:', err);
@@ -3814,7 +3954,9 @@
             searchQuery: '',
             pushNotificationsEnabled: false,
             travelMode: { active: false, name: '', budget: 0, startDate: null, endDate: null, dailyBudget: 0 },
-            hourlyRate: 0
+            hourlyRate: 0,
+            financialPacts: [],
+            financialMilestones: []
         };
         let charts = { weekly: null, cashflow: null, realvsproject: null, periods: null, accounts: null, comparison: null, category: null, simulator: null, dashboard: null, netWorth: null };        // CATEGORÍAS EDITABLES
         const DEFAULT_EXPENSE_CATS = [
@@ -4036,10 +4178,23 @@
             const descInput = document.querySelector('#expenseForm [name="description"]');
             const catSelect = document.querySelector('#expenseForm [name="category"]');
             if (descInput && catSelect) {
-                descInput.addEventListener('input', function() {
+                descInput.addEventListener('input', function () {
                     const text = this.value.trim();
                     if (text.length < 3) return;
-                    const suggested = suggestCategory(text);
+                    // Prioridade 1: coincidencia exacta co historial de frecuentes (categoría real do usuario)
+                    const frequent = (AppState.frequentExpenses || []).find(f =>
+                        (typeof f === 'object' ? f.description : f).toLowerCase() === text.toLowerCase()
+                    );
+                    let suggested;
+                    if (frequent && typeof frequent === 'object' && frequent.category) {
+                        suggested = frequent.category;
+                    } else {
+                        // Prioridade 2: buscar en historial completo por descrición exacta
+                        const histMatch = AppState.expenses.find(e =>
+                            e.description && e.description.toLowerCase() === text.toLowerCase() && e.category
+                        );
+                        suggested = histMatch ? histMatch.category : suggestCategory(text);
+                    }
                     if (suggested && suggested !== 'outros') {
                         const option = catSelect.querySelector(`option[value="${suggested}"]`);
                         if (option) catSelect.value = suggested;
@@ -4051,7 +4206,7 @@
             const amountInput = $('expenseAmountInput');
             const impactPreview = $('expenseImpactPreview');
             if (amountInput && impactPreview) {
-                amountInput.addEventListener('input', function() {
+                amountInput.addEventListener('input', function () {
                     const amount = parseAmount(this.value) || 0;
                     if (amount <= 0) { impactPreview.style.display = 'none'; return; }
                     const r = AppState.lastCalculation;
@@ -4210,6 +4365,7 @@
                     updatePeriodHistory();
                     updateTravelModeUI();
                     updateProductHistoryList();
+                    updatePactsList();
                     break;
                 case 'settings':
                     updateCategorySettingsUI();
@@ -4283,26 +4439,33 @@
                 const _saldoActual = (AppState.accounts || [])
                     .filter(a => a && a.forDailySpending && !a.archived)
                     .reduce((s, a) => s + (parseFloat(a.balance) || 0), 0);
-                const _last3 = (AppState.periodHistory || []).slice(-3);
+                const _last3 = (AppState.periodHistory || [])
+                    .sort((a, b) => new Date(b.closedAt) - new Date(a.closedAt))
+                    .slice(0, 3);
                 let _mediaGastoPeriodo = 0;
                 if (_last3.length > 0) {
-                    _mediaGastoPeriodo = r2(_last3.reduce((s, p) => s + (parseFloat(p.totalExpenses) || 0), 0) / _last3.length);
+                    // Gasto total = variables + fixos do período
+                    _mediaGastoPeriodo = r2(_last3.reduce((s, p) =>
+                        s + (parseFloat(p.totalExpenses) || 0) + (parseFloat(p.totalFixed) || 0), 0) / _last3.length);
                 } else {
-                    // Sen historial, usar gasto do período actual
-                    _mediaGastoPeriodo = r2((AppState.expenses || []).filter(e => {
+                    // Sen historial, usar gasto do período actual (variables + fixos)
+                    const _gastoVariableActual = (AppState.expenses || []).filter(e => {
                         if (!e || !e.date || e.extraordinary) return false;
                         const d = parseDate(e.date); d.setHours(0,0,0,0);
                         return r && r.periodInfo && d >= r.periodInfo.periodStart;
-                    }).reduce((s, e) => s + (parseFloat(e.amount) || 0), 0));
+                    }).reduce((s, e) => s + (parseFloat(e.amount) || 0), 0);
+                    const _gastoFixoActual = (AppState.recurringExpenses || [])
+                        .reduce((s, e) => s + (parseFloat(e.amount) || 0), 0);
+                    _mediaGastoPeriodo = r2(_gastoVariableActual + _gastoFixoActual);
                 }
                 if (_mediaGastoPeriodo > 0) {
                     const _ratio = _saldoActual / _mediaGastoPeriodo;
                     let _texto, _color;
-                    if (_ratio >= 2) {
+                    if (_ratio >= 6) {
                         _texto = '💎 Colchón feito'; _color = 'var(--accent-green)';
-                    } else if (_ratio >= 1) {
+                    } else if (_ratio >= 3) {
                         _texto = '🟢 Estable'; _color = 'var(--accent-green)';
-                    } else if (_ratio >= 0.5) {
+                    } else if (_ratio >= 1.5) {
                         _texto = '🟡 Axustado'; _color = 'var(--accent-yellow)';
                     } else {
                         _texto = '🔴 Tensionado'; _color = 'var(--accent-pink)';
@@ -4538,8 +4701,8 @@
             const breathingDays = burnRate && burnRate > 0 && r.availableToday > 0
                 ? Math.floor(r.availableToday / burnRate)
                 : burnRate && burnRate > 0 && r.totalAvailable > 0
-                ? Math.floor(r.totalAvailable / burnRate)
-                : null;
+                    ? Math.floor(r.totalAvailable / burnRate)
+                    : null;
             const elBD = $('kpiBreathingDays');
             if (elBD) {
                 elBD.textContent = breathingDays !== null ? breathingDays + ' días' : '—';
@@ -4551,12 +4714,12 @@
             // Canto do teu diñeiro sae de decisións activas vs compromisos pasivos
             const totalAutomatico = r.breakdown.committedRecurring +
                 (AppState.debts || []).filter(d => d && d.direction === 'owe' && !d.repaymentPaused && d.repaymentDate)
-                .reduce((s, d) => {
-                    const rem = (parseFloat(d.amount) || 0) - (parseFloat(d.paidAmount) || 0);
-                    if (rem <= 0) return s;
-                    const daysLeft = Math.ceil((new Date(d.repaymentDate) - new Date()) / (1000 * 60 * 60 * 24));
-                    return daysLeft > 0 ? s + r2(rem / daysLeft * (r.periodInfo?.totalDays || 30)) : s;
-                }, 0);
+                    .reduce((s, d) => {
+                        const rem = (parseFloat(d.amount) || 0) - (parseFloat(d.paidAmount) || 0);
+                        if (rem <= 0) return s;
+                        const daysLeft = Math.ceil((new Date(d.repaymentDate) - new Date()) / (1000 * 60 * 60 * 24));
+                        return daysLeft > 0 ? s + r2(rem / daysLeft * (r.periodInfo?.totalDays || 30)) : s;
+                    }, 0);
             const totalConsciente = s.periodExpenses;
             const totalFluxo = totalConsciente + totalAutomatico;
             const ratioConsciente = totalFluxo > 0 ? r2(totalConsciente / totalFluxo * 100) : null;
@@ -4565,6 +4728,414 @@
                 elCS.textContent = ratioConsciente !== null ? ratioConsciente.toFixed(1) + '%' : '—';
                 elCS.style.color = ratioConsciente === null ? 'var(--accent-purple)' : ratioConsciente < 20 ? '#ff4757' : ratioConsciente < 40 ? 'var(--accent-yellow)' : 'var(--accent-purple)';
                 elCS.parentElement.querySelector('.info-label').title = '% do fluxo total que sae de decisións activas (variables) vs compromisos automáticos (fixos + débedas)';
+            }
+
+            // F32. VELOCIDADE DE RECUPERACIÓN FINANCEIRA
+            // Tras un gasto extraordinario, cantos períodos tardaches en recuperar o saldo libre previo
+            const elRES = $('kpiResilience');
+            if (elRES) {
+                const _sortedPH32 = (AppState.periodHistory || [])
+                    .sort((a, b) => new Date(a.closedAt) - new Date(b.closedAt));
+
+                if (_sortedPH32.length >= 3) {
+                    // Buscar períodos con gastos extraordinarios
+                    const _recoveries = [];
+                    _sortedPH32.forEach((ph, idx) => {
+                        if (idx === 0) return;
+                        const _hasExtraordinary = (ph.expenses || []).some(e => e && e.extraordinary);
+                        if (!_hasExtraordinary) return;
+
+                        // Balance do período anterior ao extraordinario
+                        const _prevBalance = parseFloat(_sortedPH32[idx - 1]?.balance) || 0;
+                        // Buscar cando se recuperou o balance
+                        for (let i = idx + 1; i < _sortedPH32.length; i++) {
+                            const _futureBalance = parseFloat(_sortedPH32[i]?.balance) || 0;
+                            if (_futureBalance >= _prevBalance) {
+                                _recoveries.push(i - idx);
+                                break;
+                            }
+                        }
+                    });
+
+                    if (_recoveries.length > 0) {
+                        const _avgRecovery = r2(_recoveries.reduce((s, v) => s + v, 0) / _recoveries.length);
+                        elRES.textContent = _avgRecovery.toFixed(1) + 'P';
+                        elRES.style.color = _avgRecovery <= 1 ? 'var(--accent-green)' : _avgRecovery <= 2 ? 'var(--accent-yellow)' : '#ff4757';
+                        elRES.parentElement.querySelector('.info-label').title =
+                            `Media de períodos para recuperar o saldo tras un gasto extraordinario. Baseado en ${_recoveries.length} evento(s). Menos = máis resiliente.`;
+                    } else {
+                        elRES.textContent = '—';
+                        elRES.parentElement.querySelector('.info-label').title = 'Sen gastos extraordinarios rexistrados nos períodos pechados';
+                    }
+                } else {
+                    elRES.textContent = '—';
+                    elRES.parentElement.querySelector('.info-label').title = 'Necesitas 3+ períodos pechados con gastos extraordinarios';
+                }
+            }
+
+            // F22. ÍNDICE DE ESTRÉS FINANCEIRO DIARIO (IEFD)
+            // Fórmula composta 0-100: marxe + gastos inesperados + deuda + presión fixos
+            const elFS = $('kpiFinancialStress');
+            if (elFS) {
+                const _remainingDays22 = r.periodInfo?.remainingDays || 1;
+                const _totalDays22 = r.periodInfo?.totalDays || 30;
+
+                // Compoñente 1 (40%): días de respiro vs días restantes
+                const _burnRate22 = r.periodInfo?.dayInPeriod > 0
+                    ? r2((AppState.expenses || []).filter(e => {
+                        if (!e || !e.date || e.extraordinary) return false;
+                        const d = parseDate(e.date); d.setHours(0,0,0,0);
+                        return d >= r.periodInfo.periodStart;
+                    }).reduce((s, e) => s + (parseFloat(e.amount) || 0), 0) / r.periodInfo.dayInPeriod)
+                    : 0;
+                const _breath22 = _burnRate22 > 0 && r.availableToday > 0
+                    ? Math.floor(r.availableToday / _burnRate22) : _remainingDays22;
+                const _c1 = r2(1 - Math.min(1, _breath22 / _remainingDays22));
+
+                // Compoñente 2 (30%): gastos extraordinarios / ingresos período
+                const _s22 = FinancialEngine.calculateMonthlyStats(AppState);
+                const _extraordinary22 = (AppState.expenses || []).filter(e => {
+                    if (!e || !e.date || !e.extraordinary) return false;
+                    const d = parseDate(e.date); d.setHours(0,0,0,0);
+                    return d >= r.periodInfo?.periodStart;
+                }).reduce((s, e) => s + (parseFloat(e.amount) || 0), 0);
+                const _c2 = _s22.periodIncomes > 0
+                    ? Math.min(1, r2(_extraordinary22 / _s22.periodIncomes)) : 0;
+
+                // Compoñente 3 (20%): deuda activa / ingresos mensuais
+                const _deuda22 = (AppState.debts || [])
+                    .filter(d => d && d.direction === 'owe')
+                    .reduce((s, d) => s + Math.max(0, (parseFloat(d.amount) || 0) - (parseFloat(d.paidAmount) || 0)), 0);
+                const _c3 = _s22.periodIncomes > 0
+                    ? Math.min(1, r2(_deuda22 / _s22.periodIncomes)) : 0;
+
+                // Compoñente 4 (10%): IPP (presión fixos)
+                const _ipp22 = _s22.periodIncomes > 0
+                    ? Math.min(1, r2(r.breakdown.committedRecurring / _s22.periodIncomes)) : 0;
+
+                const _iefd = Math.round((_c1 * 0.4 + _c2 * 0.3 + _c3 * 0.2 + _ipp22 * 0.1) * 100);
+                const _stressLabel = _iefd <= 20 ? 'Tranquila' : _iefd <= 40 ? 'Atenta' : _iefd <= 65 ? 'Alerta' : 'Crise';
+                const _stressColor = _iefd <= 20 ? 'var(--accent-green)' : _iefd <= 40 ? 'var(--accent-yellow)' : _iefd <= 65 ? 'var(--accent-orange)' : '#ff4757';
+                elFS.textContent = `${_iefd} · ${_stressLabel}`;
+                elFS.style.color = _stressColor;
+                elFS.style.fontSize = '0.75rem';
+                elFS.parentElement.querySelector('.info-label').title =
+                    `IEFD: marxe(${(_c1*40).toFixed(0)}) + imprevistos(${(_c2*30).toFixed(0)}) + débeda(${(_c3*20).toFixed(0)}) + fixos(${(_ipp22*10).toFixed(0)}) = ${_iefd}/100`;
+            }
+
+            // F23. ÍNDICE DE ESTABILIDADE FINANCEIRA (IEF)
+            // (availableToday / periodDailyAverage) × (1 - fixedRatio) × liquidityDays/30
+            const elSI = $('kpiStabilityIndex');
+            if (elSI) {
+                const _s23 = FinancialEngine.calculateMonthlyStats(AppState);
+                const _periodAvg23 = r.breakdown?.availablePerDay || 0;
+                const _fixedRatio23 = _s23.periodIncomes > 0
+                    ? Math.min(1, r2(r.breakdown.committedRecurring / _s23.periodIncomes)) : 1;
+                const _saldoTotal23 = FinancialEngine.calculateTotalBalance(AppState.accounts);
+                const _gastoMedio23 = r.periodInfo?.dayInPeriod > 0
+                    ? r2(_s23.periodExpenses / r.periodInfo.dayInPeriod) : 0;
+                const _liquidityDays23 = _gastoMedio23 > 0 ? r2(_saldoTotal23 / _gastoMedio23) : 30;
+
+                if (_periodAvg23 > 0 && _s23.periodIncomes > 0) {
+                    const _ief = Math.min(100, Math.round(
+                        (r.availableToday / _periodAvg23) *
+                        (1 - _fixedRatio23) *
+                        Math.min(1, _liquidityDays23 / 30) * 100
+                    ));
+                    const _iefLabel = _ief >= 70 ? 'Sólida' : _ief >= 40 ? 'Moderada' : _ief >= 20 ? 'Fráxil' : 'Crítica';
+                    elSI.textContent = `${Math.max(0, _ief)} · ${_iefLabel}`;
+                    elSI.style.color = _ief >= 70 ? 'var(--accent-green)' : _ief >= 40 ? 'var(--accent-cyan)' : _ief >= 20 ? 'var(--accent-yellow)' : '#ff4757';
+                    elSI.style.fontSize = '0.75rem';
+                    elSI.parentElement.querySelector('.info-label').title =
+                        `IEF combina marxe diaria, liberdade de fixos e liquidez. 0-100: Crítica·Fráxil·Moderada·Sólida`;
+                } else {
+                    elSI.textContent = '—';
+                }
+            }
+
+            // F27. SCORE DE BENESTAR FINANCEIRO GLOBAL
+            // Fórmula composta 0-100 con 5 dimensións
+            const elWB = $('kpiWellbeing');
+            if (elWB) {
+                const _s27 = FinancialEngine.calculateMonthlyStats(AppState);
+
+                // D1 (25%): Chegar a fin de período — IPP < 50% = 100, IPP > 70% = 0
+                const _ipp27 = _s27.periodIncomes > 0
+                    ? r2(r.breakdown.committedRecurring / _s27.periodIncomes * 100) : 100;
+                const _d1 = _ipp27 <= 50 ? 100 : _ipp27 <= 70 ? r2((70 - _ipp27) / 20 * 100) : 0;
+
+                // D2 (20%): Días de respiro suficientes
+                const _burnWB = r.periodInfo?.dayInPeriod > 0
+                    ? r2((AppState.expenses || []).filter(e => {
+                        if (!e || !e.date || e.extraordinary) return false;
+                        const d = parseDate(e.date); d.setHours(0,0,0,0);
+                        return d >= r.periodInfo.periodStart;
+                    }).reduce((s, e) => s + (parseFloat(e.amount) || 0), 0) / r.periodInfo.dayInPeriod) : 0;
+                const _breathWB = _burnWB > 0 && r.availableToday > 0
+                    ? Math.floor(r.availableToday / _burnWB) : (r.periodInfo?.remainingDays || 0);
+                const _remaining27 = r.periodInfo?.remainingDays || 1;
+                const _d2 = Math.min(100, r2(_breathWB / _remaining27 * 100));
+
+                // D3 (20%): Aforro activo
+                const _aforroReal27 = (AppState.savingsGoals || [])
+                    .filter(g => g && g.active !== false)
+                    .reduce((s, g) => s + (parseFloat(g.currentAmount) || 0), 0);
+                const _taxaAforro27 = _s27.periodIncomes > 0
+                    ? r2(_aforroReal27 / _s27.periodIncomes * 100) : 0;
+                const _d3 = _taxaAforro27 >= 20 ? 100 : _taxaAforro27 >= 10 ? 70 : _taxaAforro27 > 0 ? 40 : 0;
+
+                // D4 (20%): Sen deuda ou deuda baixa
+                const _deuda27 = (AppState.debts || [])
+                    .filter(d => d && d.direction === 'owe')
+                    .reduce((s, d) => s + Math.max(0, (parseFloat(d.amount) || 0) - (parseFloat(d.paidAmount) || 0)), 0);
+                const _d4 = _s27.periodIncomes > 0
+                    ? Math.max(0, 100 - r2(_deuda27 / _s27.periodIncomes * 100))
+                    : (_deuda27 === 0 ? 100 : 0);
+
+                // D5 (15%): Fiabilidade dos datos (reutilizar lóxica F18)
+                const _totalExp27 = (AppState.expenses || []).filter(e => e && !e.extraordinary).length;
+                const _periods27 = (AppState.periodHistory || []).length;
+                const _d5 = Math.min(100, r2(_totalExp27 * 0.5 + _periods27 * 8));
+
+                const _wellbeing = Math.round(
+                    _d1 * 0.25 + _d2 * 0.20 + _d3 * 0.20 + _d4 * 0.20 + _d5 * 0.15
+                );
+                const _wbLabel = _wellbeing >= 80 ? 'Excelente' : _wellbeing >= 60 ? 'Bo' : _wellbeing >= 40 ? 'Axustado' : _wellbeing >= 20 ? 'Crítico' : 'Moi crítico';
+                const _wbColor = _wellbeing >= 80 ? 'var(--accent-green)' : _wellbeing >= 60 ? 'var(--accent-cyan)' : _wellbeing >= 40 ? 'var(--accent-yellow)' : '#ff4757';
+                elWB.textContent = `${_wellbeing} · ${_wbLabel}`;
+                elWB.style.color = _wbColor;
+                elWB.style.fontSize = '0.75rem';
+                elWB.parentElement.querySelector('.info-label').title =
+                    `Benestar: IPP(${_d1.toFixed(0)}) + Respiro(${_d2.toFixed(0)}) + Aforro(${_d3.toFixed(0)}) + Débeda(${_d4.toFixed(0)}) + Datos(${_d5.toFixed(0)}) = ${_wellbeing}/100`;
+            }
+
+            // F25. COEFICIENTE DE IMPREDICIBILIDADE
+            // stdDev(gastos últimos N períodos) / mean — alto = vida financeira caótica
+            const elUP = $('kpiUnpredictability');
+            if (elUP) {
+                const _ph25 = (AppState.periodHistory || [])
+                    .sort((a, b) => new Date(b.closedAt) - new Date(a.closedAt))
+                    .slice(0, 8);
+                if (_ph25.length >= 4) {
+                    const _vals = _ph25.map(p => (parseFloat(p.totalExpenses) || 0) + (parseFloat(p.totalFixed) || 0));
+                    const _mean = r2(_vals.reduce((s, v) => s + v, 0) / _vals.length);
+                    const _variance = r2(_vals.reduce((s, v) => s + Math.pow(v - _mean, 2), 0) / _vals.length);
+                    const _stdDev = r2(Math.sqrt(_variance));
+                    const _cv = _mean > 0 ? r2(_stdDev / _mean * 100) : null;
+                    if (_cv !== null) {
+                        elUP.textContent = _cv.toFixed(0) + '%';
+                        elUP.style.color = _cv > 40 ? '#ff4757' : _cv > 20 ? 'var(--accent-yellow)' : 'var(--accent-green)';
+                        elUP.parentElement.querySelector('.info-label').title =
+                            `Coeficiente de variación do gasto entre períodos. <20% = vida financeira estable · >40% = moi imprevisible. Baseado en ${_ph25.length} períodos.`;
+                    } else { elUP.textContent = '—'; }
+                } else {
+                    elUP.textContent = '—';
+                    elUP.parentElement.querySelector('.info-label').title = 'Necesitas 4+ períodos pechados';
+                }
+            }
+
+            // F24. RENDEMENTO DO PERÍODO VS MEDIA HISTÓRICA
+            // "Este período vas un X% peor/mellor que a túa media"
+            const elPP = $('kpiPeriodPerformance');
+            if (elPP) {
+                const _ph24 = (AppState.periodHistory || [])
+                    .sort((a, b) => new Date(b.closedAt) - new Date(a.closedAt));
+                if (_ph24.length >= 3) {
+                    const _avgHistBalance = r2(_ph24.slice(0, 6).reduce((s, p) =>
+                        s + (parseFloat(p.balance) || 0), 0) / Math.min(_ph24.length, 6));
+                    // Predición do período actual usando F10
+                    const _r24 = FinancialEngine.calculateAvailableToday(AppState);
+                    const _s24 = FinancialEngine.calculateMonthlyStats(AppState);
+                    const _burnRate24 = _r24?.periodInfo?.dayInPeriod > 0
+                        ? r2(_s24.periodExpenses / _r24.periodInfo.dayInPeriod) : 0;
+                    const _forecastEnd = _r24?.totalAvailable > 0
+                        ? r2(_r24.totalAvailable - _burnRate24 * (_r24.periodInfo?.remainingDays || 0) - (_r24.breakdown?.committedRecurring || 0))
+                        : null;
+                    if (_forecastEnd !== null && _avgHistBalance !== 0) {
+                        const _perfPct = r2((_forecastEnd - _avgHistBalance) / Math.abs(_avgHistBalance) * 100);
+                        const _sign = _perfPct >= 0 ? '+' : '';
+                        elPP.textContent = `${_sign}${_perfPct.toFixed(0)}%`;
+                        elPP.style.color = _perfPct >= 0 ? 'var(--accent-green)' : _perfPct > -15 ? 'var(--accent-yellow)' : '#ff4757';
+                        elPP.parentElement.querySelector('.info-label').title =
+                            `Proxección de peche (${fc(_forecastEnd)}) vs media histórica (${fc(_avgHistBalance)}). Positivo = mellor que a túa media.`;
+                    } else { elPP.textContent = '—'; }
+                } else {
+                    elPP.textContent = '—';
+                    elPP.parentElement.querySelector('.info-label').title = 'Necesitas 3+ períodos pechados';
+                }
+            }
+
+            // F26. ÍNDICE DE VULNERABILIDADE DE FIN DE PERÍODO
+            // En cantos períodos históricos o saldo nos últimos días foi crítico (<20% do inicial)?
+            const elEV = $('kpiEndVulnerability');
+            if (elEV) {
+                const _ph26 = (AppState.periodHistory || [])
+                    .sort((a, b) => new Date(b.closedAt) - new Date(a.closedAt))
+                    .slice(0, 8);
+                if (_ph26.length >= 3) {
+                    const _vulnerable = _ph26.filter(p => {
+                        const _income = parseFloat(p.totalIncomes) || 0;
+                        const _balance = parseFloat(p.balance) || 0;
+                        // Vulnerable = balance final < 15% dos ingresos
+                        return _income > 0 && _balance < _income * 0.15;
+                    }).length;
+                    const _pct = r2(_vulnerable / _ph26.length * 100);
+                    elEV.textContent = _pct.toFixed(0) + '%';
+                    elEV.style.color = _pct > 50 ? '#ff4757' : _pct > 25 ? 'var(--accent-yellow)' : 'var(--accent-green)';
+                    elEV.parentElement.querySelector('.info-label').title =
+                        `En ${_vulnerable} de ${_ph26.length} períodos chegaches co saldo moi xusto (<15% dos ingresos). ${_pct > 50 ? 'Patrón de risco.' : 'Razoable.'}`;
+                } else {
+                    elEV.textContent = '—';
+                    elEV.parentElement.querySelector('.info-label').title = 'Necesitas 3+ períodos pechados';
+                }
+            }
+
+            // F18. SCORE DE FIABILIDADE DOS DATOS
+            // Cantos dos teus cálculos son estatisticamente fiables?
+            const elDR = $('kpiDataReliability');
+            if (elDR) {
+                const _totalExpenses = (AppState.expenses || []).filter(e => e && !e.extraordinary).length;
+                const _periodsClosed = (AppState.periodHistory || []).length;
+                const _hasIncome = (AppState.incomes || []).length > 0;
+                const _daysWithData = (() => {
+                    const dates = new Set((AppState.expenses || []).map(e => e.date).filter(Boolean));
+                    return dates.size;
+                })();
+                const _expPerDay = _daysWithData > 0 ? _totalExpenses / _daysWithData : 0;
+                const _scoreExpenses = Math.min(40, r2(_expPerDay * 0.5 * 40));
+                const _scorePeriods = Math.min(40, r2(_periodsClosed * 8));
+                const _scoreIncome = _hasIncome ? 20 : 0;
+                const _reliability = Math.min(100, Math.round(_scoreExpenses + _scorePeriods + _scoreIncome));
+                elDR.textContent = _reliability + '%';
+                elDR.style.color = _reliability < 30 ? '#ff4757' : _reliability < 60 ? 'var(--accent-yellow)' : 'var(--accent-green)';
+                elDR.parentElement.querySelector('.info-label').title =
+                    `Gastos: ${_totalExpenses} · Períodos pechados: ${_periodsClosed} · Días con rexistro: ${_daysWithData}. Máis datos = máis precisión nos cálculos.`;
+            }
+
+            // F19. DETECTOR DE CREEP DE SUBSCRICIÓNS
+            // O total de subscricións medrou máis dun X% nos últimos 6 períodos?
+            const elSC = $('kpiSubscriptionCreep');
+            if (elSC) {
+                const _subsActual = (AppState.recurringExpenses || [])
+                    .filter(r => r && !r.archived && r.fixedType === 'subscricion')
+                    .reduce((s, r) => s + (parseFloat(r.amount) || 0), 0);
+                const _sortedPH = (AppState.periodHistory || [])
+                    .sort((a, b) => new Date(b.closedAt) - new Date(a.closedAt));
+                const _ph6 = _sortedPH.slice(3, 7);
+                if (_ph6.length >= 1 && _subsActual > 0) {
+                    const _subsPasado = r2(_ph6.reduce((s, ph) => {
+                        const t = (ph.recurringExpenses || [])
+                            .filter(r => r && r.fixedType === 'subscricion')
+                            .reduce((a, r) => a + (parseFloat(r.amount) || 0), 0);
+                        return s + t;
+                    }, 0) / _ph6.length);
+                    if (_subsPasado > 0) {
+                        const _creepPct = r2((_subsActual - _subsPasado) / _subsPasado * 100);
+                        const _sign = _creepPct >= 0 ? '+' : '';
+                        elSC.textContent = `${_sign}${_creepPct.toFixed(0)}%`;
+                        elSC.style.color = _creepPct > 20 ? '#ff4757' : _creepPct > 5 ? 'var(--accent-yellow)' : 'var(--accent-green)';
+                        elSC.parentElement.querySelector('.info-label').title =
+                            `Subscricións agora: ${fc(_subsActual)}/mes · Hai 6 períodos: ${fc(_subsPasado)}/mes. Variación: ${_sign}${_creepPct.toFixed(1)}%`;
+                    } else {
+                        elSC.textContent = fc(_subsActual);
+                        elSC.parentElement.querySelector('.info-label').title = 'Sen historial suficiente para comparar. Total actual de subscricións/mes.';
+                    }
+                } else if (_subsActual > 0) {
+                    elSC.textContent = fc(_subsActual);
+                    elSC.style.color = 'var(--accent-pink)';
+                    elSC.parentElement.querySelector('.info-label').title = 'Necesitas 6+ períodos pechados para detectar creep. Total actual/mes.';
+                } else {
+                    elSC.textContent = '—';
+                    elSC.parentElement.querySelector('.info-label').title = 'Sen subscricións rexistradas';
+                }
+            }
+
+            // F15. RATIO DE SUPERVIVENCIA
+            // availableToday / gastoMínimodiario (só categorías esenciais)
+            const esenciais = ['alimentacion', 'saude', 'transporte', 'vivienda', 'servicios'];
+            const _now15 = getEffectiveDate(); _now15.setHours(0,0,0,0);
+            const _90ago = new Date(_now15); _90ago.setDate(_now15.getDate() - 90);
+            const _gastoEsencial90 = (AppState.expenses || []).filter(e => {
+                if (!e || !e.date || e.extraordinary) return false;
+                const d = parseDate(e.date); d.setHours(0,0,0,0);
+                return d >= _90ago && esenciais.includes(e.category);
+            }).reduce((s, e) => s + (parseFloat(e.amount) || 0), 0);
+            const _dailyMin = _90ago < _now15 ? r2(_gastoEsencial90 / 90) : null;
+            const elSR = $('kpiSurvivalRatio');
+            if (elSR) {
+                if (_dailyMin && _dailyMin > 0 && r.availableToday !== undefined) {
+                    const survivalRatio = r2(r.availableToday / _dailyMin);
+                    elSR.textContent = survivalRatio.toFixed(1) + 'x';
+                    elSR.style.color = survivalRatio < 1 ? '#ff4757' : survivalRatio < 2 ? 'var(--accent-yellow)' : 'var(--accent-green)';
+                    elSR.parentElement.querySelector('.info-label').title = `Dispoñible hoxe (${fc(r.availableToday)}) / gasto mínimo diario (${fc(_dailyMin)}). <1 = non cubres o básico`;
+                } else {
+                    elSR.textContent = '—';
+                    elSR.parentElement.querySelector('.info-label').title = 'Necesitas 90 días de historial en categorías esenciais';
+                }
+            }
+
+            // F16. EFICIENCIA DO AFORRO
+            // Do que PODÍAS aforrar, canto aforras realmente
+            const elSE = $('kpiSavingsEfficiency');
+            if (elSE) {
+                const _aforroReal16 = (AppState.savingsGoals || [])
+                    .filter(g => g && g.active !== false)
+                    .reduce((s, g) => s + (parseFloat(g.currentAmount) || 0), 0);
+                const _potencialAforro = r.availableToday > 0 && r.periodInfo
+                    ? r2(r.availableToday * r.periodInfo.totalDays)
+                    : null;
+                if (_potencialAforro && _potencialAforro > 0) {
+                    const efficiency = Math.min(200, r2(_aforroReal16 / _potencialAforro * 100));
+                    elSE.textContent = efficiency.toFixed(0) + '%';
+                    elSE.style.color = efficiency < 10 ? '#ff4757' : efficiency < 30 ? 'var(--accent-yellow)' : 'var(--accent-purple)';
+                    elSE.parentElement.querySelector('.info-label').title = `Aforro acumulado (${fc(_aforroReal16)}) / potencial máximo do período (${fc(_potencialAforro)})`;
+                } else {
+                    elSE.textContent = '—';
+                }
+            }
+
+            // F8. MARXE DE SEGURIDADE DO PERÍODO
+            // % do dispoñible que NON está comprometido en fixos
+            const elSM = $('kpiSafetyMargin');
+            if (elSM) {
+                const _safetyMargin = r.totalAvailable > 0
+                    ? r2((r.totalAvailable - r.breakdown.committedRecurring) / r.totalAvailable * 100)
+                    : null;
+                if (_safetyMargin !== null) {
+                    elSM.textContent = _safetyMargin.toFixed(1) + '%';
+                    elSM.style.color = _safetyMargin < 20 ? '#ff4757' : _safetyMargin < 40 ? 'var(--accent-yellow)' : 'var(--accent-cyan)';
+                    elSM.parentElement.querySelector('.info-label').title = '% do dispoñible total que non está comprometido en fixos. <20% = alarma';
+                    if (_safetyMargin < 20) elSM.parentElement.querySelector('.info-label').textContent = '⚠️ Marxe Seguridade';
+                    else elSM.parentElement.querySelector('.info-label').textContent = 'Marxe Seguridade';
+                } else {
+                    elSM.textContent = '—';
+                }
+            }
+
+            // F4. HORAS TRABALLADAS HOXE (coste do día en horas de traballo)
+            const elHT = $('kpiHoursToday');
+            if (elHT) {
+                if (AppState.hourlyRate && AppState.hourlyRate > 0) {
+                    const _todayDate = getEffectiveDate(); _todayDate.setHours(0, 0, 0, 0);
+                    const _gastoHoxe = (AppState.expenses || []).filter(e => {
+                        if (!e || !e.date) return false;
+                        const d = parseDate(e.date); d.setHours(0, 0, 0, 0);
+                        return d.getTime() === _todayDate.getTime();
+                    }).reduce((s, e) => s + (parseFloat(e.amount) || 0), 0);
+                    if (_gastoHoxe > 0) {
+                        const _horas = r2(_gastoHoxe / AppState.hourlyRate);
+                        elHT.textContent = `${_horas}h`;
+                        elHT.style.color = _horas > 8 ? '#ff4757' : _horas > 4 ? 'var(--accent-yellow)' : 'var(--accent-cyan)';
+                        elHT.parentElement.querySelector('.info-label').title = `Gastaches ${fc(_gastoHoxe)} hoxe = ${_horas}h ao teu ritmo de ${fc(AppState.hourlyRate)}/hora`;
+                    } else {
+                        elHT.textContent = '0h';
+                        elHT.style.color = 'var(--accent-green)';
+                        elHT.parentElement.querySelector('.info-label').title = 'Sen gastos rexistrados hoxe';
+                    }
+                } else {
+                    elHT.textContent = '—';
+                    elHT.parentElement.querySelector('.info-label').title = 'Configura a túa tarifa/hora en Axustes para activar este KPI';
+                }
             }
 
             // F10. INFLACIÓN PERSOAL COMO KPI FORMAL
@@ -4667,9 +5238,9 @@
             if (!resultsList) return;
 
             const renderItem = e => {
-                const _h = AppState.hourlyRate > 0 ? r2(e.amount/AppState.hourlyRate) : null;
-                const _metas = (AppState.savingsGoals||[]).filter(g=>g.active!==false&&!g.paused&&!g.completed&&g.targetAmount>0);
-                const _metaInfo = _h && _metas.length > 0 ? ` · ${r2((e.amount/_metas[0].targetAmount)*100)}% ${escapeHtml(_metas[0].name)}` : '';
+                const _h = AppState.hourlyRate > 0 ? r2(e.amount / AppState.hourlyRate) : null;
+                const _metas = (AppState.savingsGoals || []).filter(g => g.active !== false && !g.paused && !g.completed && g.targetAmount > 0);
+                const _metaInfo = _h && _metas.length > 0 ? ` · ${r2((e.amount / _metas[0].targetAmount) * 100)}% ${escapeHtml(_metas[0].name)}` : '';
                 const _horasInfo = _h ? `<div style="font-size:0.65rem;color:var(--text-muted);margin-top:2px;">${_h}h de traballo${_metaInfo}</div>` : '';
                 return `<div class="list-item" data-expense-id="${e.id}" style="${e.extraordinary ? 'opacity:0.7;border-left-color:var(--accent-purple);' : ''}"><div class="list-item-info"><div class="list-item-name">${escapeHtml(e.description)}${e.extraordinary ? ' <span style="font-size:0.7rem;color:var(--accent-purple);background:rgba(168,85,247,0.1);padding:1px 6px;border-radius:10px;">⭐ Extraordinario</span>' : ''}</div> <div class="list-item-details">${fd(e.date)} · ${cats[e.category] || '📦'}${e.location ? ' · 📍 ' + escapeHtml(e.location) : ''}${formatWorkTime(e.amount)}</div></div><div class="list-item-amount expense">-${fc(e.amount)}${_horasInfo}</div><div class="list-item-actions"><button class="btn btn-secondary btn-icon" onclick="duplicateExpense(${e.id})" title="Duplicar">⧉</button><button class="btn btn-secondary btn-icon" onclick="editExpense(${e.id})">✎</button>
 <button class="btn btn-danger btn-icon" data-delete="expense" data-id="${e.id}">✕</button></div></div>`;
@@ -4729,7 +5300,7 @@
                 return `<div style="margin-bottom:16px;">
                     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;padding:6px 10px;background:rgba(255,255,255,0.04);border-radius:8px;">
                         <span style="font-family:'Orbitron',monospace;font-size:0.7rem;color:${color};text-transform:uppercase;">${icon} ${title}</span>
-                        <span style="font-size:0.75rem;color:var(--text-muted);">${fc(total)}/mes · ${fc(r2(total*12))}/ano</span>
+                        <span style="font-size:0.75rem;color:var(--text-muted);">${fc(total)}/mes · ${fc(r2(total * 12))}/ano</span>
                     </div>
                     ${items.map(renderItem).join('')}
                 </div>`;
@@ -5085,7 +5656,7 @@
                 const amounts = document.querySelectorAll('.annual-inst-amount');
                 descs.forEach((d, i) => {
                     const amt = parseAmount(amounts[i].value) || 0;
-                    if (amt > 0) installments.push({ description: d.value || `Cota ${i+1}`, amount: amt, paid: false });
+                    if (amt > 0) installments.push({ description: d.value || `Cota ${i + 1}`, amount: amt, paid: false });
                 });
             }
             // Calcular cuota periódica recomendada
@@ -5161,7 +5732,7 @@
                     </div>
                     <div class="progress-bar"><div class="progress-fill ${pc}" style="width:${p}%"></div></div>
                     <div style="margin-top:6px;font-size:0.75rem;color:var(--text-muted);display:flex;justify-content:space-between;">
-                        <span>🗓️ Próximo pago: <strong style="color:${urgencyColor};">${g.nextDate ? new Date(g.nextDate).toLocaleDateString('gl-ES', {day:'numeric',month:'long',year:'numeric'}) : '—'}</strong></span>
+                        <span>🗓️ Próximo pago: <strong style="color:${urgencyColor};">${g.nextDate ? new Date(g.nextDate).toLocaleDateString('gl-ES', { day: 'numeric', month: 'long', year: 'numeric' }) : '—'}</strong></span>
                         <span style="color:${urgencyColor};">${fc(g.totalAmount - g.currentSaved)} restantes</span>
                     </div>
                 </div>`;
@@ -5316,7 +5887,7 @@
             overlay.onclick = e => { if (e.target === overlay) overlay.remove(); };
 
             // Preview en tiempo real
-            document.getElementById('debtPlanDate').addEventListener('input', function() {
+            document.getElementById('debtPlanDate').addEventListener('input', function () {
                 const d = new Date(this.value);
                 if (isNaN(d.getTime())) { document.getElementById('debtPlanDateResult').textContent = '—'; return; }
                 const daysLeft = Math.ceil((d - new Date()) / (1000 * 60 * 60 * 24));
@@ -5326,7 +5897,7 @@
                 document.getElementById('debtPlanAmountResult').textContent = '—';
             });
 
-            document.getElementById('debtPlanAmount').addEventListener('input', function() {
+            document.getElementById('debtPlanAmount').addEventListener('input', function () {
                 const amount = parseAmount(this.value) || 0;
                 if (amount <= 0) { document.getElementById('debtPlanAmountResult').textContent = '—'; return; }
                 const daily = r2(amount / totalDays);
@@ -5512,10 +6083,39 @@
         }
         function updateNotificationUI() {
             const badge = $('notifBadge'), list = $('notificationList');
-            const unread = AppState.notifications.filter(n => !n.read).length;
+            // Filtrar notificacións de máis de 7 días
+            const _7daysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+            const _active = AppState.notifications.filter(n => {
+                const t = n.time ? new Date(n.time).getTime() : 0;
+                return t >= _7daysAgo;
+            });
+            // Ordenar: danger primeiro, warning despois, resto ao final
+            const _priority = { danger: 0, error: 0, warning: 1, success: 2, info: 3 };
+            const _sorted = [..._active].sort((a, b) => {
+                const pa = _priority[a.type] ?? 3;
+                const pb = _priority[b.type] ?? 3;
+                if (pa !== pb) return pa - pb;
+                return new Date(b.time) - new Date(a.time);
+            });
+            const unread = _sorted.filter(n => !n.read).length;
             badge.textContent = unread; badge.classList.toggle('hidden', unread === 0);
-            if (!AppState.notifications.length) { list.innerHTML = '<div class="empty-state" style="padding:20px;"><p>Sen notificacións</p></div>'; return; }
-            list.innerHTML = AppState.notifications.slice(0, 15).map(n => `<div class="notification-item ${n.read ? '' : 'unread'}" data-notif="${n.id}"><div class="notification-item-title"><span class="notif-icon notif-${n.type}">${n.icon}</span>${n.title}</div><div class="notification-item-text">${n.text}</div></div>`).join('');
+            if (!_sorted.length) { list.innerHTML = '<div class="empty-state" style="padding:20px;"><p>Sen notificacións</p></div>'; return; }
+            list.innerHTML = _sorted.slice(0, 15).map(n => {
+                const _ago = n.time ? (() => {
+                    const mins = Math.floor((Date.now() - new Date(n.time).getTime()) / 60000);
+                    if (mins < 60) return `${mins}min`;
+                    const hrs = Math.floor(mins / 60);
+                    if (hrs < 24) return `${hrs}h`;
+                    return `${Math.floor(hrs / 24)}d`;
+                })() : '';
+                return `<div class="notification-item ${n.read ? '' : 'unread'}" data-notif="${n.id}">
+                    <div class="notification-item-title">
+                        <span class="notif-icon notif-${n.type}">${n.icon}</span>${n.title}
+                        ${_ago ? `<span style="margin-left:auto;font-size:0.65rem;color:var(--text-muted);font-weight:normal;">${_ago}</span>` : ''}
+                    </div>
+                    <div class="notification-item-text">${n.text}</div>
+                </div>`;
+            }).join('');
         }
         // CHARTS
         function updateDashboardChart() {
@@ -5585,7 +6185,710 @@
             const ctx = $('simulatorChart'); if (charts.simulator) charts.simulator.destroy();
             charts.simulator = new Chart(ctx, { type: 'line', data: { labels: sim.projections.map(p => `M${p.month}`), datasets: [{ label: 'Saldo', data: sim.projections.map(p => p.balance), borderColor: '#00f5ff', backgroundColor: 'rgba(0,245,255,0.2)', fill: true, tension: 0.4 }, { label: 'Aforro', data: sim.projections.map(p => p.savings), borderColor: '#39ff14', backgroundColor: 'rgba(57,255,20,0.2)', fill: true, tension: 0.4 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#a0a0c0', font: { size: 10 } } } }, scales: { x: { ticks: { color: '#606080', font: { size: 9 } }, grid: { color: 'rgba(255,110,199,0.1)' } }, y: { ticks: { color: '#606080', font: { size: 9 } }, grid: { color: 'rgba(255,110,199,0.1)' } } } } });
         }
+        function openCategoryMicroscope(cat) {
+            const catNames = { alimentacion: '🍎 Alimentación', transporte: '🚗 Transporte', ocio: '🎮 Ocio', saude: '💊 Saúde', roupa: '👕 Roupa', cafe: '☕ Café', subscricions: '📱 Subscricións', vivienda: '🏠 Vivenda', servicios: '💡 Servizos', seguros: '🛡️ Seguros', outros: '📦 Outros' };
+            const catName = catNames[cat] || cat;
+            const dayNames = ['Dom', 'Lun', 'Mar', 'Mér', 'Xov', 'Ven', 'Sáb'];
+
+            // Gastos desta categoría nos últimos 90 días
+            const now = getEffectiveDate(); now.setHours(0,0,0,0);
+            const _90ago = new Date(now); _90ago.setDate(now.getDate() - 90);
+            const catExpenses = (AppState.expenses || []).filter(e => {
+                if (!e || !e.date || e.extraordinary || e.category !== cat) return false;
+                const d = parseDate(e.date); d.setHours(0,0,0,0);
+                return d >= _90ago;
+            }).sort((a, b) => new Date(a.date) - new Date(b.date));
+
+            if (!catExpenses.length) {
+                toast(`Sen gastos en ${catName} nos últimos 90 días`, 'info');
+                return;
+            }
+
+            // Gasto por día da semana
+            const byDay = [0,0,0,0,0,0,0];
+            const countByDay = [0,0,0,0,0,0,0];
+            catExpenses.forEach(e => {
+                const d = parseDate(e.date).getDay();
+                byDay[d] += parseFloat(e.amount) || 0;
+                countByDay[d]++;
+            });
+            const avgByDay = byDay.map((t, i) => countByDay[i] > 0 ? r2(t / countByDay[i]) : 0);
+            const maxDay = Math.max(...avgByDay);
+
+            // Techo natural (percentil 90)
+            const amounts = catExpenses.map(e => parseFloat(e.amount) || 0).sort((a, b) => a - b);
+            const p90idx = Math.floor(amounts.length * 0.9);
+            const naturalCeiling = amounts[p90idx] || amounts[amounts.length - 1];
+
+            // Tendencia: comparar primeiros 45 días vs últimos 45 días
+            const midDate = new Date(_90ago); midDate.setDate(_90ago.getDate() + 45);
+            const first45 = catExpenses.filter(e => parseDate(e.date) < midDate);
+            const last45 = catExpenses.filter(e => parseDate(e.date) >= midDate);
+            const avg1 = first45.length > 0 ? r2(first45.reduce((s, e) => s + (parseFloat(e.amount)||0), 0) / first45.length) : 0;
+            const avg2 = last45.length > 0 ? r2(last45.reduce((s, e) => s + (parseFloat(e.amount)||0), 0) / last45.length) : 0;
+            const trend = avg1 > 0 ? r2((avg2 - avg1) / avg1 * 100) : null;
+
+            // Total e media
+            const total = r2(catExpenses.reduce((s, e) => s + (parseFloat(e.amount)||0), 0));
+            const avg = r2(total / catExpenses.length);
+
+            const overlay = document.createElement('div');
+            overlay.className = 'modal-overlay active';
+            overlay.id = 'categoryMicroscopeOverlay';
+            overlay.innerHTML = `
+                <div class="modal" style="max-width:380px;">
+                    <div class="modal-header">
+                        <h3 class="modal-title" style="color:var(--accent-cyan);">🔬 ${catName}</h3>
+                        <button class="modal-close" onclick="document.getElementById('categoryMicroscopeOverlay').remove()">×</button>
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px;">
+                        <div style="text-align:center;padding:8px;background:rgba(255,110,199,0.08);border-radius:8px;">
+                            <div style="font-family:'Orbitron',monospace;font-size:0.85rem;color:var(--accent-pink);">${fc(total)}</div>
+                            <div style="font-size:0.65rem;color:var(--text-muted);">Total 90d</div>
+                        </div>
+                        <div style="text-align:center;padding:8px;background:rgba(0,245,255,0.08);border-radius:8px;">
+                            <div style="font-family:'Orbitron',monospace;font-size:0.85rem;color:var(--accent-cyan);">${fc(avg)}</div>
+                            <div style="font-size:0.65rem;color:var(--text-muted);">Media/gasto</div>
+                        </div>
+                        <div style="text-align:center;padding:8px;background:rgba(168,85,247,0.08);border-radius:8px;">
+                            <div style="font-family:'Orbitron',monospace;font-size:0.85rem;color:var(--accent-purple);">${fc(naturalCeiling)}</div>
+                            <div style="font-size:0.65rem;color:var(--text-muted);">Teito natural</div>
+                        </div>
+                    </div>
+                    ${trend !== null ? `<div style="margin-bottom:12px;padding:8px;background:rgba(255,255,255,0.04);border-radius:8px;font-size:0.8rem;">
+                        <span style="color:var(--text-muted);">Tendencia 90d: </span>
+                        <span style="color:${trend > 10 ? '#ff4757' : trend < -10 ? 'var(--accent-green)' : 'var(--accent-yellow)'};">
+                            ${trend > 0 ? '📈 +' : '📉 '}${trend.toFixed(0)}% (${fc(avg1)} → ${fc(avg2)})
+                        </span>
+                    </div>` : ''}
+                    <div style="font-family:'Orbitron',monospace;font-size:0.7rem;color:var(--text-muted);margin-bottom:8px;text-transform:uppercase;">Gasto por día da semana</div>
+                    <div style="display:flex;align-items:flex-end;gap:4px;height:60px;margin-bottom:4px;">
+                        ${avgByDay.map((v, i) => {
+                            const h = maxDay > 0 ? Math.max(4, Math.round(v / maxDay * 56)) : 4;
+                            const isTop = v === maxDay && v > 0;
+                            return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;">
+                                <div style="width:100%;background:${isTop ? '#ff4757' : 'var(--accent-cyan)'};border-radius:3px 3px 0 0;height:${h}px;opacity:${v > 0 ? 1 : 0.2};"></div>
+                                <div style="font-size:0.6rem;color:${isTop ? '#ff4757' : 'var(--text-muted)'};">${dayNames[i]}</div>
+                                ${v > 0 ? `<div style="font-size:0.55rem;color:var(--text-muted);">${fc(v)}</div>` : ''}
+                            </div>`;
+                        }).join('')}
+                    </div>
+                    <div style="font-size:0.72rem;color:var(--text-muted);margin-top:8px;">
+                        ${catExpenses.length} gastos · ${countByDay.filter(c => c > 0).length} días distintos da semana con actividade
+                    </div>
+                </div>`;
+            document.body.appendChild(overlay);
+            overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+        }
+
+        // ─── SISTEMA DE PACTOS FINANCEIROS ───
+        function openNewPactModal() {
+            const catNames = { alimentacion: '🍎 Alimentación', transporte: '🚗 Transporte', ocio: '🎮 Ocio', saude: '💊 Saúde', roupa: '👕 Roupa', cafe: '☕ Café', subscricions: '📱 Subscricións', vivienda: '🏠 Vivenda', servicios: '💡 Servizos', seguros: '🛡️ Seguros', outros: '📦 Outros' };
+            const overlay = document.createElement('div');
+            overlay.className = 'modal-overlay active';
+            overlay.id = 'pactModalOverlay';
+            overlay.innerHTML = `
+                <div class="modal" style="max-width:360px;">
+                    <div class="modal-header">
+                        <h3 class="modal-title" style="color:var(--accent-cyan);">🤝 Novo Pacto</h3>
+                        <button class="modal-close" onclick="document.getElementById('pactModalOverlay').remove()">×</button>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Nome do pacto</label>
+                        <input type="text" class="form-input" id="pactName" placeholder="Ex: Control de ocio semanal">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Categoría a controlar</label>
+                        <select class="form-select" id="pactCategory">
+                            ${Object.entries(catNames).map(([k,v]) => `<option value="${k}">${v}</option>`).join('')}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Límite (€) nun período de</label>
+                        <div style="display:flex;gap:8px;">
+                            <input type="number" class="form-input" id="pactLimit" placeholder="Ex: 50" step="0.01" inputmode="decimal" style="flex:1;">
+                            <select class="form-select" id="pactPeriodDays" style="flex:1;">
+                                <option value="7">1 semana</option>
+                                <option value="14">2 semanas</option>
+                                <option value="30">1 mes</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Consecuencia se o rompes (opcional)</label>
+                        <input type="text" class="form-input" id="pactConsequence" placeholder="Ex: Non gastar nada en ocio a seguinte semana">
+                    </div>
+                    <button class="btn btn-primary" style="width:100%;" onclick="savePact()">Gardar Pacto</button>
+                </div>`;
+            document.body.appendChild(overlay);
+            overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+        }
+
+        async function savePact() {
+            const name = $('pactName')?.value?.trim();
+            const category = $('pactCategory')?.value;
+            const limit = parseAmount($('pactLimit')?.value) || 0;
+            const periodDays = parseInt($('pactPeriodDays')?.value) || 7;
+            const consequence = $('pactConsequence')?.value?.trim() || '';
+            if (!name || limit <= 0) { toast('Introduce nome e límite', 'error'); return; }
+            const pact = { name, category, limit, periodDays, consequence, active: true, createdAt: new Date().toISOString() };
+            const id = await Database.add('financialPacts', pact);
+            AppState.financialPacts.push({ ...pact, id });
+            document.getElementById('pactModalOverlay')?.remove();
+            updatePactsList();
+            toast('Pacto gardado ✓');
+        }
+
+        async function deletePact(id) {
+            if (!confirm('Eliminar este pacto?')) return;
+            await Database.remove('financialPacts', id);
+            AppState.financialPacts = AppState.financialPacts.filter(p => p.id !== id);
+            updatePactsList();
+            toast('Pacto eliminado ✓');
+        }
+
+        function updatePactsList() {
+            const c = $('pactsList');
+            if (!c) return;
+            const pacts = AppState.financialPacts || [];
+            if (!pacts.length) {
+                c.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🤝</div><p>Sen pactos definidos</p></div>';
+                return;
+            }
+            const catNames = { alimentacion: '🍎 Alimentación', transporte: '🚗 Transporte', ocio: '🎮 Ocio', saude: '💊 Saúde', roupa: '👕 Roupa', cafe: '☕ Café', subscricions: '📱 Subscricións', vivienda: '🏠 Vivenda', servicios: '💡 Servizos', seguros: '🛡️ Seguros', outros: '📦 Outros' };
+            const now = getEffectiveDate(); now.setHours(0,0,0,0);
+
+            c.innerHTML = pacts.map(pact => {
+                // Calcular gasto na categoría no período do pacto
+                const periodStart = new Date(now);
+                periodStart.setDate(now.getDate() - pact.periodDays);
+                const spent = (AppState.expenses || []).filter(e => {
+                    if (!e || !e.date || e.extraordinary) return false;
+                    const d = parseDate(e.date); d.setHours(0,0,0,0);
+                    return d >= periodStart && d <= now && e.category === pact.category;
+                }).reduce((s, e) => s + (parseFloat(e.amount) || 0), 0);
+
+                const ratio = pact.limit > 0 ? r2(spent / pact.limit) : 0;
+                const broken = spent > pact.limit;
+                const pct = Math.min(100, r2(ratio * 100));
+                const barColor = broken ? '#ff4757' : ratio > 0.8 ? 'var(--accent-yellow)' : 'var(--accent-green)';
+                const statusIcon = broken ? '❌' : ratio > 0.8 ? '⚠️' : '✅';
+                const periodLabel = pact.periodDays === 7 ? 'semana' : pact.periodDays === 14 ? '2 semanas' : 'mes';
+
+                return `<div class="list-item" style="flex-direction:column;align-items:stretch;border-left-color:${barColor};">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                        <div>
+                            <div style="font-size:0.85rem;color:var(--text-primary);">${statusIcon} ${escapeHtml(pact.name)}</div>
+                            <div style="font-size:0.72rem;color:var(--text-muted);">${catNames[pact.category] || pact.category} · límite ${fc(pact.limit)}/${periodLabel}</div>
+                        </div>
+                        <div style="display:flex;align-items:center;gap:8px;">
+                            <div style="text-align:right;">
+                                <div style="font-family:'Orbitron',monospace;font-size:0.85rem;color:${barColor};">${fc(r2(spent))}</div>
+                                <div style="font-size:0.65rem;color:var(--text-muted);">de ${fc(pact.limit)}</div>
+                            </div>
+                            <button class="btn btn-danger btn-icon" onclick="deletePact(${pact.id})">✕</button>
+                        </div>
+                    </div>
+                    <div style="background:rgba(255,255,255,0.08);border-radius:20px;height:6px;overflow:hidden;">
+                        <div style="height:100%;width:${pct}%;background:${barColor};border-radius:20px;transition:width 0.5s;"></div>
+                    </div>
+                    ${broken && pact.consequence ? `<div style="margin-top:6px;padding:6px 8px;background:rgba(255,71,87,0.1);border-radius:6px;font-size:0.75rem;color:#ff4757;">⚡ ${escapeHtml(pact.consequence)}</div>` : ''}
+                </div>`;
+            }).join('');
+        }
+
+        // ─── HISTORIA FINANCEIRA CON FITOS ───
+        function openNewMilestoneModal() {
+            const overlay = document.createElement('div');
+            overlay.className = 'modal-overlay active';
+            overlay.id = 'milestoneModalOverlay';
+            overlay.innerHTML = `
+                <div class="modal" style="max-width:340px;">
+                    <div class="modal-header">
+                        <h3 class="modal-title" style="color:var(--accent-cyan);">📖 Novo Fito</h3>
+                        <button class="modal-close" onclick="document.getElementById('milestoneModalOverlay').remove()">×</button>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Data</label>
+                        <input type="date" class="form-input" id="milestoneDate" value="${new Date().toISOString().split('T')[0]}">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Título</label>
+                        <input type="text" class="form-input" id="milestoneTitle" placeholder="Ex: Primeiro traballo, Merquei o portátil...">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Tipo</label>
+                        <select class="form-select" id="milestoneType">
+                            <option value="positive">🎉 Logro / Evento positivo</option>
+                            <option value="negative">⚠️ Crise / Evento difícil</option>
+                            <option value="neutral">📌 Nota / Cambio</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Notas (opcional)</label>
+                        <input type="text" class="form-input" id="milestoneNotes" placeholder="Detalles...">
+                    </div>
+                    <button class="btn btn-primary" style="width:100%;" onclick="saveMilestone()">Gardar Fito</button>
+                </div>`;
+            document.body.appendChild(overlay);
+            overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+        }
+
+        async function saveMilestone() {
+            const date = $('milestoneDate')?.value;
+            const title = $('milestoneTitle')?.value?.trim();
+            const type = $('milestoneType')?.value || 'neutral';
+            const notes = $('milestoneNotes')?.value?.trim() || '';
+            if (!date || !title) { toast('Introduce data e título', 'error'); return; }
+            const milestone = { date, title, type, notes, manual: true };
+            const id = await Database.add('financialMilestones', milestone);
+            AppState.financialMilestones.push({ ...milestone, id });
+            document.getElementById('milestoneModalOverlay')?.remove();
+            updateFinancialTimeline();
+            toast('Fito gardado ✓');
+        }
+
+        async function deleteMilestone(id) {
+            if (!confirm('Eliminar este fito?')) return;
+            await Database.remove('financialMilestones', id);
+            AppState.financialMilestones = AppState.financialMilestones.filter(m => m.id !== id);
+            updateFinancialTimeline();
+            toast('Fito eliminado ✓');
+        }
+
+        function updateFinancialTimeline() {
+            const c = $('financialTimeline');
+            if (!c) return;
+
+            // Fitos manuais
+            const manualMilestones = (AppState.financialMilestones || []).map(m => ({
+                date: new Date(m.date),
+                title: escapeHtml(m.title),
+                notes: m.notes ? escapeHtml(m.notes) : '',
+                type: m.type,
+                source: 'manual',
+                id: m.id
+            }));
+
+            // Fitos automáticos dos períodos históricos
+            const autoMilestones = [];
+            const sortedPH = (AppState.periodHistory || [])
+                .sort((a, b) => new Date(a.closedAt) - new Date(b.closedAt));
+
+            if (sortedPH.length > 0) {
+                // Primeiro período
+                autoMilestones.push({
+                    date: new Date(sortedPH[0].periodStart),
+                    title: 'Inicio do historial en Cartiños',
+                    notes: `Primeiro período rexistrado`,
+                    type: 'positive',
+                    source: 'auto'
+                });
+
+                // Mellor balance
+                const bestPeriod = [...sortedPH].sort((a, b) => (parseFloat(b.balance)||0) - (parseFloat(a.balance)||0))[0];
+                if (bestPeriod && (parseFloat(bestPeriod.balance)||0) > 0) {
+                    autoMilestones.push({
+                        date: new Date(bestPeriod.closedAt),
+                        title: `Mellor período rexistrado`,
+                        notes: `Balance de ${fc(parseFloat(bestPeriod.balance)||0)}`,
+                        type: 'positive',
+                        source: 'auto'
+                    });
+                }
+
+                // Peor balance
+                const worstPeriod = [...sortedPH].sort((a, b) => (parseFloat(a.balance)||0) - (parseFloat(b.balance)||0))[0];
+                if (worstPeriod && (parseFloat(worstPeriod.balance)||0) < 0) {
+                    autoMilestones.push({
+                        date: new Date(worstPeriod.closedAt),
+                        title: `Período máis difícil`,
+                        notes: `Balance de ${fc(parseFloat(worstPeriod.balance)||0)}`,
+                        type: 'negative',
+                        source: 'auto'
+                    });
+                }
+            }
+
+            // Metas completadas
+            (AppState.savingsGoals || []).filter(g => g.completed).forEach(g => {
+                autoMilestones.push({
+                    date: new Date(),
+                    title: `Meta completada: ${escapeHtml(g.name)}`,
+                    notes: `${fc(g.targetAmount)} aforrados`,
+                    type: 'positive',
+                    source: 'auto'
+                });
+            });
+
+            // Combinar e ordenar
+            const allEvents = [...manualMilestones, ...autoMilestones]
+                .sort((a, b) => a.date - b.date);
+
+            if (!allEvents.length) {
+                c.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📖</div><p>Pecha o teu primeiro período para ver o historial</p></div>';
+                return;
+            }
+
+            const typeConfig = {
+                positive: { icon: '🎉', color: 'var(--accent-green)', border: 'rgba(57,255,20,0.3)' },
+                negative: { icon: '⚠️', color: '#ff4757', border: 'rgba(255,71,87,0.3)' },
+                neutral: { icon: '📌', color: 'var(--accent-cyan)', border: 'rgba(0,245,255,0.3)' }
+            };
+
+            c.innerHTML = `
+                <div style="position:relative;padding-left:20px;">
+                    <div style="position:absolute;left:8px;top:0;bottom:0;width:2px;background:rgba(255,110,199,0.2);border-radius:2px;"></div>
+                    ${allEvents.map(ev => {
+                        const cfg = typeConfig[ev.type] || typeConfig.neutral;
+                        const dateStr = ev.date.toLocaleDateString('gl-ES', { day: 'numeric', month: 'short', year: 'numeric' });
+                        const deleteBtn = ev.source === 'manual'
+                            ? `<button onclick="deleteMilestone(${ev.id})" style="background:none;border:none;color:#ff4757;cursor:pointer;font-size:0.8rem;padding:0;flex-shrink:0;">✕</button>`
+                            : `<span style="font-size:0.65rem;color:var(--text-muted);flex-shrink:0;">auto</span>`;
+                        return `<div style="position:relative;margin-bottom:16px;">
+                            <div style="position:absolute;left:-16px;top:2px;width:12px;height:12px;border-radius:50%;background:${cfg.color};border:2px solid ${cfg.border};flex-shrink:0;"></div>
+                            <div style="padding:8px 10px;background:rgba(255,255,255,0.03);border-radius:8px;border-left:2px solid ${cfg.border};">
+                                <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
+                                    <div style="flex:1;min-width:0;">
+                                        <div style="font-size:0.82rem;color:var(--text-primary);">${cfg.icon} ${ev.title}</div>
+                                        ${ev.notes ? `<div style="font-size:0.72rem;color:var(--text-muted);margin-top:2px;">${ev.notes}</div>` : ''}
+                                        <div style="font-size:0.68rem;color:var(--text-muted);margin-top:3px;">${dateStr}</div>
+                                    </div>
+                                    ${deleteBtn}
+                                </div>
+                            </div>
+                        </div>`;
+                    }).join('')}
+                </div>`;
+        }
+
+        function updateDynamicBudget() {
+            const c = $('dynamicBudget');
+            if (!c) return;
+
+            const sortedPH = (AppState.periodHistory || [])
+                .sort((a, b) => new Date(b.closedAt) - new Date(a.closedAt))
+                .slice(0, 6);
+
+            if (sortedPH.length < 3) {
+                c.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📊</div><p>Necesítanse 3+ períodos pechados</p></div>';
+                return;
+            }
+
+            const catNames = { alimentacion: '🍎 Alimentación', transporte: '🚗 Transporte', ocio: '🎮 Ocio', saude: '💊 Saúde', roupa: '👕 Roupa', cafe: '☕ Café', subscricions: '📱 Subscricións', vivienda: '🏠 Vivenda', servicios: '💡 Servizos', seguros: '🛡️ Seguros', outros: '📦 Outros' };
+
+            // Calcular media por categoría nos períodos históricos
+            const catTotals = {};
+            const catCounts = {};
+            sortedPH.forEach(ph => {
+                const byCat = {};
+                (ph.expenses || []).forEach(e => {
+                    if (!e || !e.category || e.extraordinary || e.category === 'transferencia') return;
+                    byCat[e.category] = (byCat[e.category] || 0) + (parseFloat(e.amount) || 0);
+                });
+                Object.entries(byCat).forEach(([cat, total]) => {
+                    if (!catTotals[cat]) { catTotals[cat] = 0; catCounts[cat] = 0; }
+                    catTotals[cat] += total;
+                    catCounts[cat]++;
+                });
+            });
+
+            // Calcular factor de inflación persoal por categoría
+            // Comparar últimos 2 períodos vs anteriores
+            const recent2 = sortedPH.slice(0, 2);
+            const old3 = sortedPH.slice(2, 5);
+            const inflationByCat = {};
+            Object.keys(catTotals).forEach(cat => {
+                const avgRecent = recent2.reduce((s, ph) => {
+                    return s + (ph.expenses || []).filter(e => e && e.category === cat && !e.extraordinary).reduce((a, e) => a + (parseFloat(e.amount)||0), 0);
+                }, 0) / Math.max(recent2.length, 1);
+                const avgOld = old3.reduce((s, ph) => {
+                    return s + (ph.expenses || []).filter(e => e && e.category === cat && !e.extraordinary).reduce((a, e) => a + (parseFloat(e.amount)||0), 0);
+                }, 0) / Math.max(old3.length, 1);
+                inflationByCat[cat] = avgOld > 0 ? r2((avgRecent - avgOld) / avgOld) : 0;
+            });
+
+            // Gasto actual do período para comparar
+            const r = FinancialEngine.calculateAvailableToday(AppState);
+            const currentByCat = {};
+            if (r?.periodInfo?.periodStart) {
+                (AppState.expenses || []).forEach(e => {
+                    if (!e || !e.date || e.extraordinary || e.category === 'transferencia') return;
+                    const d = parseDate(e.date); d.setHours(0,0,0,0);
+                    if (d >= r.periodInfo.periodStart && d <= r.periodInfo.today)
+                        currentByCat[e.category] = (currentByCat[e.category] || 0) + (parseFloat(e.amount)||0);
+                });
+            }
+
+            // Construír orzamento dinámico
+            const budgetRows = Object.entries(catTotals)
+                .map(([cat, total]) => {
+                    const avg = r2(total / catCounts[cat]);
+                    const inflFactor = inflationByCat[cat] || 0;
+                    const dynamicBudget = r2(avg * (1 + inflFactor));
+                    const current = currentByCat[cat] || 0;
+                    const ratio = dynamicBudget > 0 ? r2(current / dynamicBudget) : 0;
+                    return { cat, avg, inflFactor, dynamicBudget, current, ratio };
+                })
+                .filter(row => row.dynamicBudget > 1)
+                .sort((a, b) => b.dynamicBudget - a.dynamicBudget);
+
+            if (!budgetRows.length) {
+                c.innerHTML = '<div style="color:var(--text-muted);font-size:0.85rem;text-align:center;padding:12px;">Sen datos suficientes por categoría</div>';
+                return;
+            }
+
+            const totalBudget = r2(budgetRows.reduce((s, row) => s + row.dynamicBudget, 0));
+            const totalCurrent = r2(budgetRows.reduce((s, row) => s + row.current, 0));
+
+            c.innerHTML = `
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;padding:8px 10px;background:rgba(255,255,255,0.04);border-radius:8px;">
+                    <span style="font-size:0.8rem;color:var(--text-muted);">Orzamento total do período</span>
+                    <span style="font-family:'Orbitron',monospace;font-size:0.9rem;color:var(--accent-cyan);">${fc(totalBudget)}</span>
+                </div>
+                <div style="font-size:0.7rem;color:var(--text-muted);margin-bottom:10px;">Calculado da túa historia real + inflación persoal por categoría</div>
+                ${budgetRows.map(row => {
+                    const barPct = Math.min(100, r2(row.ratio * 100));
+                    const barColor = row.ratio > 1 ? '#ff4757' : row.ratio > 0.8 ? 'var(--accent-yellow)' : 'var(--accent-green)';
+                    const inflStr = row.inflFactor !== 0
+                        ? ` <span style="font-size:0.65rem;color:${row.inflFactor > 0 ? '#ff4757' : 'var(--accent-green)'};">(${row.inflFactor > 0 ? '+' : ''}${(row.inflFactor*100).toFixed(0)}% inf.)</span>`
+                        : '';
+                    return `<div style="margin-bottom:10px;">
+                        <div style="display:flex;justify-content:space-between;font-size:0.8rem;margin-bottom:3px;align-items:center;">
+                            <span>${catNames[row.cat] || row.cat}${inflStr}</span>
+                            <span style="font-family:'Orbitron',monospace;color:${barColor};font-size:0.78rem;">${fc(row.current)} / ${fc(row.dynamicBudget)}</span>
+                        </div>
+                        <div style="background:rgba(255,255,255,0.08);border-radius:20px;height:6px;overflow:hidden;">
+                            <div style="height:100%;width:${barPct}%;background:${barColor};border-radius:20px;transition:width 0.5s;"></div>
+                        </div>
+                    </div>`;
+                }).join('')}
+                <div style="display:flex;justify-content:space-between;font-size:0.78rem;margin-top:12px;padding-top:10px;border-top:1px solid rgba(255,110,199,0.2);">
+                    <span style="color:var(--text-muted);">Gastado ata agora</span>
+                    <span style="font-family:'Orbitron',monospace;color:${totalCurrent > totalBudget ? '#ff4757' : 'var(--accent-green)'};">${fc(totalCurrent)} / ${fc(totalBudget)}</span>
+                </div>`;
+        }
+
+        function updateHabitMirror() {
+            const c = $('habitMirror');
+            if (!c) return;
+            const r = FinancialEngine.calculateAvailableToday(AppState);
+            if (!r?.periodInfo) { c.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🪞</div><p>Sen datos de período</p></div>'; return; }
+
+            const sortedPH = (AppState.periodHistory || [])
+                .sort((a, b) => new Date(b.closedAt) - new Date(a.closedAt));
+            if (sortedPH.length < 2) {
+                c.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🪞</div><p>Necesítanse 2+ períodos pechados</p></div>';
+                return;
+            }
+
+            const { periodStart, dayInPeriod } = r.periodInfo;
+            const catNames = { alimentacion: '🍎 Alimentación', transporte: '🚗 Transporte', ocio: '🎮 Ocio', saude: '💊 Saúde', roupa: '👕 Roupa', cafe: '☕ Café', subscricions: '📱 Subscricións', vivienda: '🏠 Vivenda', servicios: '💡 Servizos', seguros: '🛡️ Seguros', outros: '📦 Outros' };
+
+            // Gasto actual por categoría ata o día dayInPeriod do período actual
+            const currentByCat = {};
+            (AppState.expenses || []).forEach(e => {
+                if (!e || !e.date || e.extraordinary || e.category === 'transferencia') return;
+                const d = parseDate(e.date); d.setHours(0,0,0,0);
+                if (d >= periodStart && d <= r.periodInfo.today)
+                    currentByCat[e.category] = (currentByCat[e.category] || 0) + (parseFloat(e.amount) || 0);
+            });
+
+            // Para cada período histórico, calcular gasto acumulado ata o mesmo día do período
+            const comparisons = [];
+            sortedPH.slice(0, 3).forEach((ph, idx) => {
+                const phStart = new Date(ph.periodStart); phStart.setHours(0,0,0,0);
+                const phCutoff = new Date(phStart);
+                phCutoff.setDate(phStart.getDate() + dayInPeriod - 1);
+                phCutoff.setHours(23,59,59,999);
+
+                const phByCat = {};
+                (ph.expenses || []).forEach(e => {
+                    if (!e || !e.date || e.extraordinary || e.category === 'transferencia') return;
+                    const d = parseDate(e.date); d.setHours(0,0,0,0);
+                    if (d >= phStart && d <= phCutoff)
+                        phByCat[e.category] = (phByCat[e.category] || 0) + (parseFloat(e.amount) || 0);
+                });
+                comparisons.push({ ph, phByCat, label: idx === 0 ? 'Período anterior' : `Hai ${idx + 1} períodos` });
+            });
+
+            if (!comparisons.length) {
+                c.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🪞</div><p>Sen historial suficiente</p></div>';
+                return;
+            }
+
+            // Mostrar só categorías con actividade en calquera dos períodos
+            const allCats = new Set([
+                ...Object.keys(currentByCat),
+                ...comparisons.flatMap(comp => Object.keys(comp.phByCat))
+            ]);
+
+            // Usar o período anterior como referencia principal
+            const ref = comparisons[0];
+            const rows = [...allCats]
+                .map(cat => {
+                    const now = currentByCat[cat] || 0;
+                    const then = ref.phByCat[cat] || 0;
+                    const diff = r2(now - then);
+                    const pct = then > 0 ? r2((now - then) / then * 100) : null;
+                    return { cat, now, then, diff, pct };
+                })
+                .filter(row => row.now > 0 || row.then > 0)
+                .sort((a, b) => Math.abs(b.diff) - Math.abs(a.diff))
+                .slice(0, 8);
+
+            if (!rows.length) {
+                c.innerHTML = '<div style="color:var(--text-muted);font-size:0.85rem;text-align:center;padding:12px;">Sen gastos rexistrados para comparar</div>';
+                return;
+            }
+
+            c.innerHTML = `
+                <div style="font-size:0.75rem;color:var(--text-muted);margin-bottom:10px;padding:6px 10px;background:rgba(255,255,255,0.03);border-radius:8px;">
+                    📍 Día <strong style="color:var(--accent-cyan);">${dayInPeriod}</strong> do período actual vs mesmo punto do período anterior
+                </div>
+                ${rows.map(row => {
+                    const diffColor = row.diff > 0 ? '#ff4757' : row.diff < 0 ? 'var(--accent-green)' : 'var(--text-muted)';
+                    const diffIcon = row.diff > 0 ? '📈' : row.diff < 0 ? '📉' : '➡️';
+                    const pctStr = row.pct !== null ? ` (${row.pct > 0 ? '+' : ''}${row.pct.toFixed(0)}%)` : '';
+                    return `<div style="display:flex;align-items:center;gap:8px;padding:8px;background:rgba(255,255,255,0.03);border-radius:8px;margin-bottom:4px;">
+                        <div style="font-size:1rem;flex-shrink:0;">${diffIcon}</div>
+                        <div style="flex:1;min-width:0;">
+                            <div style="font-size:0.82rem;color:var(--text-primary);">${catNames[row.cat] || row.cat}</div>
+                            <div style="font-size:0.7rem;color:var(--text-muted);">Anterior: ${fc(row.then)}</div>
+                        </div>
+                        <div style="text-align:right;flex-shrink:0;">
+                            <div style="font-family:'Orbitron',monospace;font-size:0.8rem;color:var(--text-primary);">${fc(row.now)}</div>
+                            <div style="font-size:0.7rem;color:${diffColor};">${row.diff > 0 ? '+' : ''}${fc(row.diff)}${pctStr}</div>
+                        </div>
+                    </div>`;
+                }).join('')}`;
+        }
+
+        function updateFutureCommitments() {
+            const c = $('futureCommitments');
+            if (!c) return;
+            const today = getEffectiveDate(); today.setHours(0,0,0,0);
+            const r = FinancialEngine.calculateAvailableToday(AppState);
+            const events = [];
+
+            // 1. Gastos fixos — próximos 90 días
+            const periodKey = getCurrentPeriodKey();
+            (AppState.recurringExpenses || []).filter(e => e && !e.archived).forEach(rec => {
+                const dom = rec.dayOfMonth || 1;
+                // Buscar próxima ocurrencia
+                for (let m = 0; m <= 2; m++) {
+                    const candidate = new Date(today.getFullYear(), today.getMonth() + m, dom);
+                    if (candidate.getMonth() !== (today.getMonth() + m) % 12) continue; // día inválido no mes
+                    if (candidate <= today) continue;
+                    const daysLeft = Math.ceil((candidate - today) / (1000 * 60 * 60 * 24));
+                    if (daysLeft > 90) break;
+                    events.push({
+                        date: candidate,
+                        daysLeft,
+                        icon: rec.fixedType === 'subscricion' ? '📱' : '📄',
+                        title: escapeHtml(rec.description),
+                        amount: parseFloat(rec.variable ? getVariableRecurringEstimate(rec) : rec.amount) || 0,
+                        type: 'fixed',
+                        color: 'var(--accent-yellow)'
+                    });
+                    break; // só a próxima ocurrencia
+                }
+            });
+
+            // 2. Gastos anuais — próximos 90 días
+            (AppState.annualExpenses || []).filter(a => a && a.nextDate).forEach(annual => {
+                const nextDate = new Date(annual.nextDate); nextDate.setHours(0,0,0,0);
+                const daysLeft = Math.ceil((nextDate - today) / (1000 * 60 * 60 * 24));
+                if (daysLeft >= 0 && daysLeft <= 90) {
+                    const saved = annual.currentSaved || 0;
+                    const remaining = r2(annual.totalAmount - saved);
+                    events.push({
+                        date: nextDate,
+                        daysLeft,
+                        icon: '📅',
+                        title: escapeHtml(annual.name),
+                        amount: annual.totalAmount,
+                        type: 'annual',
+                        color: remaining > 0 && daysLeft <= 7 ? '#ff4757' : 'var(--accent-orange)',
+                        extra: remaining > 0 ? `Fáltanche ${fc(remaining)}` : '✅ Cuberto'
+                    });
+                }
+            });
+
+            // 3. Próximo cobro (payDay)
+            if (r?.periodInfo?.periodEnd) {
+                const nextPayDay = new Date(r.periodInfo.periodEnd);
+                nextPayDay.setDate(nextPayDay.getDate() + 1);
+                nextPayDay.setHours(0,0,0,0);
+                const daysLeft = Math.ceil((nextPayDay - today) / (1000 * 60 * 60 * 24));
+                if (daysLeft >= 0 && daysLeft <= 90) {
+                    events.push({
+                        date: nextPayDay,
+                        daysLeft,
+                        icon: '💰',
+                        title: 'Próximo cobro',
+                        amount: null,
+                        type: 'income',
+                        color: 'var(--accent-green)'
+                    });
+                }
+            }
+
+            // 4. Data de morte financeira (cando se esgota o saldo ao ritmo actual)
+            const burnRate20 = r?.periodInfo?.dayInPeriod > 0
+                ? r2((AppState.expenses || []).filter(e => {
+                    if (!e || !e.date || e.extraordinary) return false;
+                    const d = parseDate(e.date); d.setHours(0,0,0,0);
+                    return d >= r.periodInfo.periodStart;
+                }).reduce((s, e) => s + (parseFloat(e.amount) || 0), 0) / r.periodInfo.dayInPeriod)
+                : 0;
+            const breathingDays20 = burnRate20 > 0 && r?.totalAvailable > 0
+                ? Math.floor(r.totalAvailable / burnRate20) : null;
+            if (breathingDays20 && breathingDays20 <= 90) {
+                const deathDate = new Date(today);
+                deathDate.setDate(today.getDate() + breathingDays20);
+                events.push({
+                    date: deathDate,
+                    daysLeft: breathingDays20,
+                    icon: '💀',
+                    title: 'Saldo esgotado (sen novos ingresos)',
+                    amount: null,
+                    type: 'warning',
+                    color: '#ff4757'
+                });
+            }
+
+            if (!events.length) {
+                c.innerHTML = '<div class="empty-state"><div class="empty-state-icon">✅</div><p>Sen compromisos nos próximos 90 días</p></div>';
+                return;
+            }
+
+            // Ordenar por data
+            events.sort((a, b) => a.date - b.date);
+
+            c.innerHTML = events.map(ev => {
+                const dateStr = ev.date.toLocaleDateString('gl-ES', { day: 'numeric', month: 'short' });
+                const whenStr = ev.daysLeft === 0 ? 'Hoxe' : ev.daysLeft === 1 ? 'Mañá' : `En ${ev.daysLeft}d`;
+                const urgency = ev.daysLeft <= 3 ? 'border-color:#ff4757;' : ev.daysLeft <= 7 ? 'border-color:var(--accent-yellow);' : '';
+                return `<div style="display:flex;align-items:center;gap:10px;padding:10px;background:rgba(255,255,255,0.03);border-radius:8px;border-left:3px solid ${ev.color};${urgency}margin-bottom:6px;">
+                    <div style="font-size:1.2rem;flex-shrink:0;">${ev.icon}</div>
+                    <div style="flex:1;min-width:0;">
+                        <div style="font-size:0.85rem;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${ev.title}</div>
+                        <div style="font-size:0.72rem;color:var(--text-muted);">${dateStr}${ev.extra ? ` · ${ev.extra}` : ''}</div>
+                    </div>
+                    <div style="text-align:right;flex-shrink:0;">
+                        ${ev.amount ? `<div style="font-family:'Orbitron',monospace;font-size:0.8rem;color:${ev.color};">${fc(ev.amount)}</div>` : ''}
+                        <div style="font-size:0.7rem;color:${ev.daysLeft <= 3 ? '#ff4757' : 'var(--text-muted)'};">${whenStr}</div>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
         function updateAnalysis() {
+            updateFutureCommitments();
+            updateHabitMirror();
+            updateDynamicBudget();
+            updateFinancialTimeline();
             const patterns = FinancialEngine.detectPatterns(AppState);
             const anomalies = FinancialEngine.detectAnomalies(AppState);
             const advancedPatterns = AppState.detectedPatterns || [];
@@ -5596,9 +6899,9 @@
             const _rPtr = FinancialEngine.calculateAvailableToday(AppState);
             const _ptrAlerts = [];
             // Alertas de gastos anuais próximos
-            const _hoxe = getEffectiveDate(); _hoxe.setHours(0,0,0,0);
+            const _hoxe = getEffectiveDate(); _hoxe.setHours(0, 0, 0, 0);
             (AppState.annualExpenses || []).filter(a => a && a.nextDate).forEach(annual => {
-                const _nextDate = new Date(annual.nextDate); _nextDate.setHours(0,0,0,0);
+                const _nextDate = new Date(annual.nextDate); _nextDate.setHours(0, 0, 0, 0);
                 const _daysLeft = Math.ceil((_nextDate - _hoxe) / (1000 * 60 * 60 * 24));
                 if (_daysLeft >= 0 && _daysLeft <= 7) {
                     const _saved = annual.currentSaved || 0;
@@ -5606,7 +6909,7 @@
                     const _icon = _daysLeft === 0 ? '🚨' : _daysLeft <= 2 ? '⚠️' : '⏰';
                     const _when = _daysLeft === 0 ? 'Hoxe' : _daysLeft === 1 ? 'Mañá' : `En ${_daysLeft} días`;
                     const _extra = _remaining > 0 ? ` Levas reservados ${fc(_saved)}, fáltanche ${fc(_remaining)}.` : ' ✅ Tes o importe completo.';
-                    _ptrAlerts.push({ icon: _icon, title: `${_when}: ${escapeHtml(annual.name)}`, description: `Vence o ${new Date(annual.nextDate).toLocaleDateString('gl-ES', {day:'numeric',month:'long'})} (${fc(annual.totalAmount)}).${_extra}`, amount: null, type: _remaining > 0 && _daysLeft <= 2 ? 'danger' : 'warning' });
+                    _ptrAlerts.push({ icon: _icon, title: `${_when}: ${escapeHtml(annual.name)}`, description: `Vence o ${new Date(annual.nextDate).toLocaleDateString('gl-ES', { day: 'numeric', month: 'long' })} (${fc(annual.totalAmount)}).${_extra}`, amount: null, type: _remaining > 0 && _daysLeft <= 2 ? 'danger' : 'warning' });
                 }
             });
 
@@ -5655,7 +6958,7 @@
                 const _aforrosPendentes = r2((_rPtr.breakdown.dailySavingsAmount || 0) * _rPtr.periodInfo.remainingDays);
                 const _marxe = r2(_rPtr.totalAvailable - _fixosPendentes - _aforrosPendentes);
                 const _availablePerDayFresh = _rPtr.periodInfo.remainingDays > 0 ? _marxe / _rPtr.periodInfo.remainingDays : 0;
-const _diasMarxe = _availablePerDayFresh > 0 ? Math.floor(_marxe / _availablePerDayFresh) : 0;
+                const _diasMarxe = _availablePerDayFresh > 0 ? Math.floor(_marxe / _availablePerDayFresh) : 0;
                 if (_marxe <= 0) {
                     _ptrAlerts.push({ icon: '🚨', title: 'Punto de non retorno superado', description: 'O saldo restante só cubre os gastos fixos e aforros pendentes. Sen marxe para gastos variables.', amount: null, type: 'danger' });
                 } else if (_diasMarxe <= 3) {
@@ -5703,7 +7006,7 @@ const _diasMarxe = _availablePerDayFresh > 0 ? Math.floor(_marxe / _availablePer
             updateSubsistenceMode();
             updateNetWorthChart();
             updateLocationSummary();
-             updateComparisonChart();
+            updateComparisonChart();
             updateAccountsChart();
             updateCategoryChart();
             updatePeriodsChart();
@@ -5717,7 +7020,7 @@ const _diasMarxe = _availablePerDayFresh > 0 ? Math.floor(_marxe / _availablePer
             updateProductHistoryList();
         }
 
-       function updateProductHistoryList() {
+        function updateProductHistoryList() {
             const el = $('productHistoryList'); if (!el) return;
             // Auto-detectar produtos repetidos dos gastos históricos
             const autoProducts = {};
@@ -5796,7 +7099,7 @@ const _diasMarxe = _availablePerDayFresh > 0 ? Math.floor(_marxe / _availablePer
             if (!html) { el.innerHTML = '<div style="color:var(--text-muted);font-size:0.8rem;text-align:center;padding:10px;">Engade gastos para ver a evolución de prezos</div>'; return; }
             el.innerHTML = html;
         }
-           
+
         function updateHealthScore() {
             const el = $('healthScoreDisplay'); if (!el) return;
             const r = FinancialEngine.calculateAvailableToday(AppState);
@@ -5983,7 +7286,7 @@ const _diasMarxe = _availablePerDayFresh > 0 ? Math.floor(_marxe / _availablePer
             const needsCats = ['alimentacion', 'vivienda', 'transporte', 'saude', 'servicios', 'seguros'];
             const periodExpenses = AppState.expenses.filter(e => {
                 if (!e || !e.date || e.extraordinary) return false;
-                const d = parseDate(e.date); d.setHours(0,0,0,0);
+                const d = parseDate(e.date); d.setHours(0, 0, 0, 0);
                 return d >= periodStart && d <= periodEnd;
             });
             const subsistencia = periodExpenses.filter(e => needsCats.includes(e.category)).reduce((s, e) => s + (parseFloat(e.amount) || 0), 0);
@@ -5991,7 +7294,7 @@ const _diasMarxe = _availablePerDayFresh > 0 ? Math.floor(_marxe / _availablePer
             const prima = r2(total - subsistencia);
             const periodIncomes = AppState.incomes.filter(i => {
                 if (!i || !i.date) return false;
-                const d = parseDate(i.date); d.setHours(0,0,0,0);
+                const d = parseDate(i.date); d.setHours(0, 0, 0, 0);
                 return d >= periodStart && d <= periodEnd;
             }).reduce((s, i) => s + (parseFloat(i.amount) || 0), 0);
             if (total === 0) { el.innerHTML = '<div style="color:var(--text-muted);font-size:0.8rem;text-align:center;padding:10px;">Sen gastos rexistrados neste período</div>'; return; }
@@ -6116,13 +7419,13 @@ const _diasMarxe = _availablePerDayFresh > 0 ? Math.floor(_marxe / _availablePer
             const now = getEffectiveDate();
             if (now.getDay() !== 1) return; // Solo os luns
             const lastShown = localStorage.getItem('cartinos_weeklySummaryShown');
-            const thisWeek = `${now.getFullYear()}-${now.getMonth()}-${Math.floor(now.getDate()/7)}`;
+            const thisWeek = `${now.getFullYear()}-${now.getMonth()}-${Math.floor(now.getDate() / 7)}`;
             if (lastShown === thisWeek) return;
             // Calcular datos da semana anterior
-            const weekStart = new Date(now); weekStart.setDate(now.getDate() - 7); weekStart.setHours(0,0,0,0);
-            const weekEnd = new Date(now); weekEnd.setDate(now.getDate() - 1); weekEnd.setHours(23,59,59,999);
-            const prevWeekStart = new Date(now); prevWeekStart.setDate(now.getDate() - 14); prevWeekStart.setHours(0,0,0,0);
-            const prevWeekEnd = new Date(weekStart); prevWeekEnd.setHours(0,0,0,0); prevWeekEnd.setTime(prevWeekEnd.getTime() - 1);
+            const weekStart = new Date(now); weekStart.setDate(now.getDate() - 7); weekStart.setHours(0, 0, 0, 0);
+            const weekEnd = new Date(now); weekEnd.setDate(now.getDate() - 1); weekEnd.setHours(23, 59, 59, 999);
+            const prevWeekStart = new Date(now); prevWeekStart.setDate(now.getDate() - 14); prevWeekStart.setHours(0, 0, 0, 0);
+            const prevWeekEnd = new Date(weekStart); prevWeekEnd.setHours(0, 0, 0, 0); prevWeekEnd.setTime(prevWeekEnd.getTime() - 1);
             const weekExpenses = AppState.expenses.filter(e => { if (!e || !e.date) return false; const d = parseDate(e.date); return d >= weekStart && d <= weekEnd; });
             const prevWeekExpenses = AppState.expenses.filter(e => { if (!e || !e.date) return false; const d = parseDate(e.date); return d >= prevWeekStart && d <= prevWeekEnd; });
             if (!weekExpenses.length) return;
@@ -6131,7 +7434,7 @@ const _diasMarxe = _availablePerDayFresh > 0 ? Math.floor(_marxe / _availablePer
             const diff = totalPrevWeek > 0 ? r2(((totalWeek - totalPrevWeek) / totalPrevWeek) * 100) : null;
             const byCat = {};
             weekExpenses.forEach(e => { byCat[e.category] = (byCat[e.category] || 0) + (parseFloat(e.amount) || 0); });
-            const topCat = Object.entries(byCat).sort((a,b) => b[1]-a[1])[0];
+            const topCat = Object.entries(byCat).sort((a, b) => b[1] - a[1])[0];
             const catNames = { alimentacion: '🍎 Alimentación', transporte: '🚗 Transporte', ocio: '🎮 Ocio', saude: '💊 Saúde', roupa: '👕 Roupa', cafe: '☕ Café', subscricions: '📱 Subscricións', vivienda: '🏠 Vivenda', servicios: '💡 Servizos', outros: '📦 Outros' };
             // Suxestión de reto se sobrou da semana anterior
             const r = FinancialEngine.calculateAvailableToday(AppState);
@@ -6141,7 +7444,7 @@ const _diasMarxe = _availablePerDayFresh > 0 ? Math.floor(_marxe / _availablePer
             const el = $('weeklySummaryContent');
             if (!el || !card) return;
             el.innerHTML = `
-                <div style="font-size:0.75rem;color:var(--text-muted);margin-bottom:12px;">📅 Semana do ${weekStart.toLocaleDateString('gl-ES', {day:'numeric',month:'short'})} ao ${weekEnd.toLocaleDateString('gl-ES', {day:'numeric',month:'short'})}</div>
+                <div style="font-size:0.75rem;color:var(--text-muted);margin-bottom:12px;">📅 Semana do ${weekStart.toLocaleDateString('gl-ES', { day: 'numeric', month: 'short' })} ao ${weekEnd.toLocaleDateString('gl-ES', { day: 'numeric', month: 'short' })}</div>
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">
                     <div style="text-align:center;padding:8px;background:rgba(255,110,199,0.08);border-radius:8px;">
                         <div style="font-family:'Orbitron',monospace;font-size:0.9rem;color:var(--accent-pink);">${fc(totalWeek)}</div>
@@ -6162,7 +7465,7 @@ const _diasMarxe = _availablePerDayFresh > 0 ? Math.floor(_marxe / _availablePer
         async function createWeeklyChallenge(amount) {
             const name = 'Reto semanal';
             const targetDate = new Date(); targetDate.setDate(targetDate.getDate() + 7);
-            const data = { name, targetAmount: amount, targetDate: targetDate.toISOString().split('T')[0], dailyAmount: r2(amount/7), currentAmount: 0, active: true };
+            const data = { name, targetAmount: amount, targetDate: targetDate.toISOString().split('T')[0], dailyAmount: r2(amount / 7), currentAmount: 0, active: true };
             const id = await Database.add('savingsGoals', data);
             AppState.savingsGoals.push({ ...data, id });
             updateAllUI();
@@ -6287,9 +7590,12 @@ const _diasMarxe = _availablePerDayFresh > 0 ? Math.floor(_marxe / _availablePer
                         <div style="font-family:'Orbitron',monospace;font-size:0.7rem;color:var(--accent-cyan);margin-bottom:10px;text-transform:uppercase;letter-spacing:0.1em;">Semáforo vs media ${results[0]?.months || 0}m</div>
                         ${results.map(r => `
                         <div style="margin-bottom:10px;">
-                            <div style="display:flex;justify-content:space-between;margin-bottom:4px;font-size:0.82rem;">
+                            <div style="display:flex;justify-content:space-between;margin-bottom:4px;font-size:0.82rem;align-items:center;">
                                 <span>${r.emoji} ${r.name}</span>
-                                <span style="color:${r.color};font-family:'Orbitron',monospace;">${fc(r.current)} <span style="color:var(--text-muted);font-size:0.7rem;">/ ${fc(r.avg)} media</span></span>
+                                <div style="display:flex;align-items:center;gap:6px;">
+                                    <span style="color:${r.color};font-family:'Orbitron',monospace;">${fc(r.current)} <span style="color:var(--text-muted);font-size:0.7rem;">/ ${fc(r.avg)} media</span></span>
+                                    <button onclick="openCategoryMicroscope('${r.cat}')" style="background:rgba(0,245,255,0.1);border:1px solid rgba(0,245,255,0.3);border-radius:6px;color:var(--accent-cyan);font-size:0.7rem;padding:2px 6px;cursor:pointer;" title="Microscopía desta categoría">🔬</button>
+                                </div>
                             </div>
                             <div style="background:rgba(255,255,255,0.08);border-radius:20px;height:8px;overflow:hidden;">
                                 <div style="height:100%;width:${Math.min(r.ratio * 100, 150)}%;background:${r.color};border-radius:20px;transition:width 0.5s ease;max-width:100%;"></div>
@@ -6324,7 +7630,7 @@ const _diasMarxe = _availablePerDayFresh > 0 ? Math.floor(_marxe / _availablePer
             }
         }
 
-                async function updateAccountsChart() {
+        async function updateAccountsChart() {
             const ctx = $('accountsChart'); if (!ctx) return;
             const activeAccounts = AppState.accounts.filter(a => !a.archived);
             if (!activeAccounts.length) return;
@@ -6515,8 +7821,8 @@ const _diasMarxe = _availablePerDayFresh > 0 ? Math.floor(_marxe / _availablePer
             const r = FinancialEngine.calculateAvailableToday(AppState);
 
             // Media de gasto por día da semana (0=domingo ... 6=sábado)
-            const _gastosPorDiaSemana = [0,0,0,0,0,0,0];
-            const _conteoPorDiaSemana = [0,0,0,0,0,0,0];
+            const _gastosPorDiaSemana = [0, 0, 0, 0, 0, 0, 0];
+            const _conteoPorDiaSemana = [0, 0, 0, 0, 0, 0, 0];
             (AppState.expenses || []).forEach(e => {
                 if (!e || !e.date) return;
                 const d = parseDate(e.date);
@@ -6920,7 +8226,7 @@ const _diasMarxe = _availablePerDayFresh > 0 ? Math.floor(_marxe / _availablePer
             div.innerHTML = `
                 <input type="number" class="form-input split-amount" placeholder="0.00" step="0.01" inputmode="decimal" style="flex:1;min-width:80px;" oninput="updateSplitRemaining()">
                 <select class="form-select split-cat" style="flex:2;">
-                    ${Object.entries(cats).map(([k,v]) => `<option value="${k}">${v}</option>`).join('')}
+                    ${Object.entries(cats).map(([k, v]) => `<option value="${k}">${v}</option>`).join('')}
                 </select>
                 <button type="button" onclick="this.parentElement.remove();updateSplitRemaining();" style="background:none;border:none;color:#ff4757;font-size:1.1rem;cursor:pointer;padding:0 4px;">✕</button>`;
             $('splitLines').appendChild(div);
@@ -7728,7 +9034,7 @@ const _diasMarxe = _availablePerDayFresh > 0 ? Math.floor(_marxe / _availablePer
             el.innerHTML = `Período actual: <strong>${ps} → ${pe}</strong> · Día ${p.dayInPeriod} de ${p.totalDays}`;
         }
         // me lo puedo permitir?
-               function checkCanAfford() {
+        function checkCanAfford() {
             const amount = parseAmount($('affordAmount').value) || 0;
             if (amount <= 0) { toast('Introduce un importe válido', 'error'); return; }
             const r = FinancialEngine.calculateAvailableToday(AppState);
@@ -7738,7 +9044,7 @@ const _diasMarxe = _availablePerDayFresh > 0 ? Math.floor(_marxe / _availablePer
             const remainingDays = r?.periodInfo?.remainingDays || 1;
             const totalAvailable = r?.totalAvailable || 0;
 
-                        // O que quedaría DESPOIS do gasto
+            // O que quedaría DESPOIS do gasto
             const afterPeriod = r2(totalAvailable - amount);
             const dailySavingsAmount = r?.breakdown?.dailySavingsAmount || 0;
             const newDailyAvailable = r2(afterPeriod / remainingDays - dailySavingsAmount);
@@ -7766,7 +9072,7 @@ const _diasMarxe = _availablePerDayFresh > 0 ? Math.floor(_marxe / _availablePer
             const burnRateNow = r?.periodInfo?.dayInPeriod > 0
                 ? r2((AppState.expenses || []).filter(e => {
                     if (!e || !e.date || e.extraordinary) return false;
-                    const d = parseDate(e.date); d.setHours(0,0,0,0);
+                    const d = parseDate(e.date); d.setHours(0, 0, 0, 0);
                     return d >= r.periodInfo.periodStart && d <= r.periodInfo.today;
                 }).reduce((s, e) => s + (parseFloat(e.amount) || 0), 0) / r.periodInfo.dayInPeriod)
                 : 0;
@@ -7794,7 +9100,7 @@ const _diasMarxe = _availablePerDayFresh > 0 ? Math.floor(_marxe / _availablePer
                 const { periodStart } = r.periodInfo || {};
                 const catSpentThisPeriod = periodStart ? (AppState.expenses || []).filter(e => {
                     if (!e || !e.date || e.category !== categoryInput || e.extraordinary) return false;
-                    const d = parseDate(e.date); d.setHours(0,0,0,0);
+                    const d = parseDate(e.date); d.setHours(0, 0, 0, 0);
                     return d >= periodStart;
                 }).reduce((s, e) => s + (parseFloat(e.amount) || 0), 0) : 0;
                 const ph = (AppState.periodHistory || []).slice(-3);
@@ -7846,6 +9152,25 @@ const _diasMarxe = _availablePerDayFresh > 0 ? Math.floor(_marxe / _availablePer
                         ⚠️ Metas en risco: ${goalsAtRisk.map(g => escapeHtml(g.name)).join(', ')}
                     </div>` : ''}
                     ${patternBreakHtml}
+                    ${(() => {
+                        // F17: Tempo de recuperación de imprevistos
+                        const _esenc = ['alimentacion', 'saude', 'transporte', 'vivienda', 'servicios'];
+                        const _now17 = getEffectiveDate(); _now17.setHours(0,0,0,0);
+                        const _90ago17 = new Date(_now17); _90ago17.setDate(_now17.getDate() - 90);
+                        const _minGasto = (AppState.expenses || []).filter(e => {
+                            if (!e || !e.date || e.extraordinary) return false;
+                            const d = parseDate(e.date); d.setHours(0,0,0,0);
+                            return d >= _90ago17 && _esenc.includes(e.category);
+                        }).reduce((s, e) => s + (parseFloat(e.amount) || 0), 0);
+                        const _dailyMin17 = _minGasto > 0 ? r2(_minGasto / 90) : null;
+                        const _margenReal = availableToday - (_dailyMin17 || 0);
+                        const _recoveryDays = _dailyMin17 && _margenReal > 0 ? Math.ceil(amount / _margenReal) : null;
+                        if (!_recoveryDays) return '';
+                        return `<div style="display:flex;justify-content:space-between;font-size:0.85rem;">
+                            <span style="color:var(--text-secondary);">Días para absorber o gasto</span>
+                            <span style="font-family:'Orbitron',monospace;color:${_recoveryDays > 14 ? '#ff4757' : _recoveryDays > 7 ? 'var(--accent-yellow)' : 'var(--accent-green)'};">${_recoveryDays} días</span>
+                        </div>`;
+                    })()}
                 </div>`;
         }
 
@@ -8192,14 +9517,14 @@ const _diasMarxe = _availablePerDayFresh > 0 ? Math.floor(_marxe / _availablePer
             // KPIs calculados desde AppState
             const _saldoTotal = FinancialEngine.calculateTotalBalance(AppState.accounts);
             const _totalSavings = FinancialEngine.calculateTotalSavings(AppState.savingsGoals);
-            const _periodIngresos = r.periodInfo ? AppState.incomes.filter(i => { if (!i||!i.date) return false; const d=parseDate(i.date); d.setHours(0,0,0,0); return d>=r.periodInfo.periodStart&&d<=r.periodInfo.periodEnd; }).reduce((s,i)=>s+(parseFloat(i.amount)||0),0) : 0;
-            const _deudasTotal = AppState.debts.filter(d=>d&&d.direction==='owe').reduce((s,d)=>s+Math.max(0,(parseFloat(d.amount)||0)-(parseFloat(d.paidAmount)||0)),0);
-            const _aforroReal = AppState.savingsGoals.filter(g=>g&&g.active!==false&&!g.completed).reduce((s,g)=>s+(parseFloat(g.currentAmount)||0),0);
-            const _taxaAforro = _periodIngresos>0 ? r2((_aforroReal/_periodIngresos)*100) : null;
-            const _fixoTotal = AppState.recurringExpenses.filter(e=>e&&!e.archived).reduce((s,e)=>s+(parseFloat(e.amount)||0),0);
-            const _fixoRatio = _periodIngresos>0 ? r2((_fixoTotal/_periodIngresos)*100) : null;
+            const _periodIngresos = r.periodInfo ? AppState.incomes.filter(i => { if (!i || !i.date) return false; const d = parseDate(i.date); d.setHours(0, 0, 0, 0); return d >= r.periodInfo.periodStart && d <= r.periodInfo.periodEnd; }).reduce((s, i) => s + (parseFloat(i.amount) || 0), 0) : 0;
+            const _deudasTotal = AppState.debts.filter(d => d && d.direction === 'owe').reduce((s, d) => s + Math.max(0, (parseFloat(d.amount) || 0) - (parseFloat(d.paidAmount) || 0)), 0);
+            const _aforroReal = AppState.savingsGoals.filter(g => g && g.active !== false && !g.completed).reduce((s, g) => s + (parseFloat(g.currentAmount) || 0), 0);
+            const _taxaAforro = _periodIngresos > 0 ? r2((_aforroReal / _periodIngresos) * 100) : null;
+            const _fixoTotal = AppState.recurringExpenses.filter(e => e && !e.archived).reduce((s, e) => s + (parseFloat(e.amount) || 0), 0);
+            const _fixoRatio = _periodIngresos > 0 ? r2((_fixoTotal / _periodIngresos) * 100) : null;
             const _gastoMedio = s.dailyAverage || 0;
-            const _liquidez = _gastoMedio>0 ? r2(_saldoTotal/_gastoMedio) : null;
+            const _liquidez = _gastoMedio > 0 ? r2(_saldoTotal / _gastoMedio) : null;
 
             const kpiData = [
                 { label: 'Taxa Aforro', val: _taxaAforro !== null ? `${_taxaAforro}%` : '—' },
@@ -8539,6 +9864,8 @@ const _diasMarxe = _availablePerDayFresh > 0 ? Math.floor(_marxe / _availablePer
             AppState.priceHistory = d.priceHistory || [];
             AppState.periodHistory = await Database.getAll('periodHistory');
             AppState.annualExpenses = await Database.getAll('annualExpenses');
+            AppState.financialPacts = await Database.getAll('financialPacts');
+            AppState.financialMilestones = await Database.getAll('financialMilestones');
             // Cargar payDay desde localStorage
             const localPayDay = parseInt(localStorage.getItem('cartinos_payDay'));
             if (localPayDay) {
@@ -8552,6 +9879,11 @@ const _diasMarxe = _availablePerDayFresh > 0 ? Math.floor(_marxe / _availablePer
             // Detectar patrones y gastos frecuentes
             detectAdvancedPatterns();
             updateFrequentExpenses();
+            // Limpar notificacións de máis de 7 días da BD
+            const _cutoff = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+            const _old = AppState.notifications.filter(n => n.time && n.time < _cutoff);
+            for (const n of _old) await Database.remove('notifications', n.id);
+            AppState.notifications = AppState.notifications.filter(n => !n.time || n.time >= _cutoff);
             updatePeriodInfo();
         }
 
@@ -8729,6 +10061,7 @@ const _diasMarxe = _availablePerDayFresh > 0 ? Math.floor(_marxe / _availablePer
                 $('btnNewIncome')?.addEventListener('click', () => openModal('incomeModal'));
                 $('btnNewExpense')?.addEventListener('click', () => openModal('expenseModal'));
                 $('btnNewRecurring')?.addEventListener('click', () => openModal('recurringModal'));
+                $('btnNewPact')?.addEventListener('click', () => openNewPactModal());
                 $('btnNewAnnual')?.addEventListener('click', () => openAnnualModal());
                 $('btnNewSavings')?.addEventListener('click', () => openModal('savingsModal'));
                 $('btnNewDebt')?.addEventListener('click', () => {
@@ -8790,10 +10123,10 @@ const _diasMarxe = _availablePerDayFresh > 0 ? Math.floor(_marxe / _availablePer
                 $('accountForm').addEventListener('submit', saveAccount);
                 $('incomeForm').addEventListener('submit', saveIncome);
                 $('expenseForm').addEventListener('submit', saveExpense);
-            document.querySelectorAll('[data-modal]')?.forEach(btn => {
-                btn.addEventListener('click', () => updateCategorySelects());
-            });
-            document.getElementById('fabExpense')?.addEventListener('click', () => updateCategorySelects());
+                document.querySelectorAll('[data-modal]')?.forEach(btn => {
+                    btn.addEventListener('click', () => updateCategorySelects());
+                });
+                document.getElementById('fabExpense')?.addEventListener('click', () => updateCategorySelects());
                 $('recurringForm').addEventListener('submit', saveRecurring);
                 $('savingsForm').addEventListener('submit', saveSavingsGoal);
 
@@ -9154,14 +10487,14 @@ const _diasMarxe = _availablePerDayFresh > 0 ? Math.floor(_marxe / _availablePer
             const dayIncomes = AppState.incomes.filter(i => i.date && i.date.startsWith(dateStr));
 
             // Saldo proxectado para días futuros
-            const today = getEffectiveDate(); today.setHours(0,0,0,0);
-            const targetDate = new Date(dateStr); targetDate.setHours(0,0,0,0);
+            const today = getEffectiveDate(); today.setHours(0, 0, 0, 0);
+            const targetDate = new Date(dateStr); targetDate.setHours(0, 0, 0, 0);
             const isFuture = targetDate > today;
             let saldoProxectado = null;
             let fixosDiaHtml = '';
             if (isFuture) {
-                const _gastosPorDiaSemana = [0,0,0,0,0,0,0];
-                const _conteoPorDiaSemana = [0,0,0,0,0,0,0];
+                const _gastosPorDiaSemana = [0, 0, 0, 0, 0, 0, 0];
+                const _conteoPorDiaSemana = [0, 0, 0, 0, 0, 0, 0];
                 (AppState.expenses || []).forEach(e => {
                     if (!e || !e.date) return;
                     const d = parseDate(e.date);
@@ -9471,15 +10804,17 @@ const _diasMarxe = _availablePerDayFresh > 0 ? Math.floor(_marxe / _availablePer
     </script>
 
     <!-- SISTEMA DE LOGS PARA DEBUG EN SAFARI iOS -->
-    <div id="debugLog" style="display:none;position:fixed;bottom:0;left:0;right:0;max-height:40vh;overflow-y:auto;background:rgba(0,0,0,0.92);border-top:2px solid #ff4757;z-index:99999;padding:8px;font-family:monospace;font-size:0.7rem;color:#ff4757;">
+    <div id="debugLog"
+        style="display:none;position:fixed;bottom:0;left:0;right:0;max-height:40vh;overflow-y:auto;background:rgba(0,0,0,0.92);border-top:2px solid #ff4757;z-index:99999;padding:8px;font-family:monospace;font-size:0.7rem;color:#ff4757;">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
             <span style="color:#ffd93d;font-weight:bold;">🐛 DEBUG LOG</span>
-            <button onclick="document.getElementById('debugLog').style.display='none'" style="background:#ff4757;color:white;border:none;padding:2px 8px;border-radius:4px;font-size:0.7rem;">✕</button>
+            <button onclick="document.getElementById('debugLog').style.display='none'"
+                style="background:#ff4757;color:white;border:none;padding:2px 8px;border-radius:4px;font-size:0.7rem;">✕</button>
         </div>
         <div id="debugLogContent"></div>
     </div>
     <script>
-        window.onerror = function(msg, src, line, col, err) {
+        window.onerror = function (msg, src, line, col, err) {
             const log = document.getElementById('debugLog');
             const content = document.getElementById('debugLogContent');
             if (log && content) {
@@ -9493,7 +10828,7 @@ const _diasMarxe = _availablePerDayFresh > 0 ? Math.floor(_marxe / _availablePer
             return false;
         };
 
-        window.addEventListener('unhandledrejection', function(e) {
+        window.addEventListener('unhandledrejection', function (e) {
             const log = document.getElementById('debugLog');
             const content = document.getElementById('debugLogContent');
             if (log && content) {
@@ -9507,4 +10842,5 @@ const _diasMarxe = _availablePerDayFresh > 0 ? Math.floor(_marxe / _availablePer
         });
     </script>
 </body>
+
 </html>
