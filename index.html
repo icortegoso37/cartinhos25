@@ -2670,8 +2670,8 @@
                 // Estadísticas por período real de cobro
                 const periodKey = getCurrentPeriodKey();
                 const { periodStart } = getPeriodDates(data.payDay || 1);
-                const pi = (data.incomes || []).filter(i => { if (!i || !i.date) return false; const d = parseDate(i.date); d.setHours(0, 0, 0, 0); return d >= periodStart && d <= today; }).reduce((s, i) => s + (parseFloat(i.amount) || 0), 0);
-                const pe = (data.expenses || []).filter(e => { if (!e || !e.date) return false; const d = parseDate(e.date); d.setHours(0, 0, 0, 0); return d >= periodStart && d <= today; }).reduce((s, e) => s + (parseFloat(e.amount) || 0), 0);
+                const pi = (data.incomes || []).filter(i => { if (!i || !i.date) return false; if (i.category === 'transferencia') return false; const d = parseDate(i.date); d.setHours(0, 0, 0, 0); return d >= periodStart && d <= today; }).reduce((s, i) => s + (parseFloat(i.amount) || 0), 0);
+                const pe = (data.expenses || []).filter(e => { if (!e || !e.date) return false; if (e.category === 'transferencia') return false; const d = parseDate(e.date); d.setHours(0, 0, 0, 0); return d >= periodStart && d <= today; }).reduce((s, e) => s + (parseFloat(e.amount) || 0), 0);
 
                 const pr = (data.recurringExpenses || []).filter(e => e.paidPeriods && e.paidPeriods.includes(periodKey)).reduce((s, e) => s + (parseFloat(e.amount) || 0), 0);
                 const pend = (data.recurringExpenses || []).filter(e => !(e.paidPeriods && e.paidPeriods.includes(periodKey))).reduce((s, e) => s + (parseFloat(e.amount) || 0), 0);
@@ -3487,6 +3487,30 @@
                 await Database.update('appConfig', config);
             } catch (e) {
                 await Database.add('appConfig', config);
+            }
+        }
+
+        async function recalculateDailyAmounts() {
+            if (!AppState.savingsGoals || !AppState.savingsGoals.length) return;
+            const today = getEffectiveDate(); today.setHours(0,0,0,0);
+            let changed = false;
+            for (const g of AppState.savingsGoals) {
+                if (!g || g.active === false || g.paused || g.completed) continue;
+                if (!g.targetDate || !g.targetAmount) continue;
+                const targetDate = new Date(g.targetDate); targetDate.setHours(23,59,59,999);
+                if (targetDate <= today) continue;
+                const daysRemaining = Math.ceil((targetDate - today) / (1000 * 60 * 60 * 24));
+                const remaining = Math.max(0, (parseFloat(g.targetAmount)||0) - (parseFloat(g.currentAmount)||0));
+                if (remaining <= 0) continue;
+                const newDaily = r2(remaining / daysRemaining);
+                if (Math.abs(newDaily - (parseFloat(g.dailyAmount)||0)) > 0.01) {
+                    g.dailyAmount = newDaily;
+                    await Database.update('savingsGoals', g);
+                    changed = true;
+                }
+            }
+            if (changed) {
+                AppState.savingsGoals = await Database.getAll('savingsGoals');
             }
         }
 
@@ -4356,10 +4380,12 @@
                     if ($('expensesCollapsible')?.style.display === 'block') updateExpensesList();
                     break;
                 case 'recurring':
-                    updateRecurringList();
-                    updateAnnualExpensesList();
-                    updateSavingsList();
-                    updateDebtsList();
+                    recalculateDailyAmounts().then(() => {
+                        updateRecurringList();
+                        updateAnnualExpensesList();
+                        updateSavingsList();
+                        updateDebtsList();
+                    });
                     break;
                 case 'analysis':
                     updateAnalysis();
@@ -5852,6 +5878,63 @@
             else toast(`Reserva de ${fc(amount)} engadida ✓`);
         }
 
+        async function payAnnualExpense(id) {
+            const goal = (AppState.annualExpenses || []).find(a => a.id === id);
+            if (!goal) return;
+
+            // Confirmar importe — por defecto o total
+            const amountStr = prompt(`Importe pagado de "${goal.name}":`, goal.totalAmount);
+            if (amountStr === null) return;
+            const amount = parseAmount(amountStr);
+            if (!amount || amount <= 0) { toast('Importe non válido', 'error'); return; }
+
+            // Seleccionar conta
+            const activeAccounts = AppState.accounts.filter(a => !a.archived);
+            if (!activeAccounts.length) { toast('Non hai contas activas', 'error'); return; }
+
+            let accountId = activeAccounts[0].id;
+            if (activeAccounts.length > 1) {
+                const options = activeAccounts.map((a, i) => `${i + 1}. ${a.name} (${fc(a.balance)})`).join('\n');
+                const sel = prompt(`Selecciona conta:\n${options}`, '1');
+                if (sel === null) return;
+                const idx = parseInt(sel) - 1;
+                if (idx >= 0 && idx < activeAccounts.length) accountId = activeAccounts[idx].id;
+            }
+
+            // Rexistrar o gasto real
+            const acc = AppState.accounts.find(a => a.id === accountId);
+            if (acc) acc.balance = r2(acc.balance - amount);
+            const expenseData = {
+                description: goal.name,
+                amount,
+                date: new Date().toISOString().split('T')[0],
+                category: 'outros',
+                accountId,
+                extraordinary: false
+            };
+            const ops = [{ type: 'add', store: 'expenses', data: expenseData }];
+            const stores = ['expenses'];
+            if (acc) { ops.push({ type: 'update', store: 'accounts', data: acc }); stores.push('accounts'); }
+            const results = await Database.runTransaction(stores, 'readwrite', ops);
+            AppState.expenses.push({ ...expenseData, id: results[0] });
+            if (acc) AppState.accounts = AppState.accounts.map(a => a.id === acc.id ? acc : a);
+
+            // Calcular próxima data segundo frecuencia
+            const freqMonths = goal.frequency === 'annual' ? 12 : goal.frequency === 'semiannual' ? 6 : 3;
+            const nextDate = new Date(goal.nextDate || new Date());
+            nextDate.setMonth(nextDate.getMonth() + freqMonths);
+            const nextDateStr = nextDate.toISOString().split('T')[0];
+
+            // Actualizar gasto anual — resetear reserva e avanzar data
+            goal.currentSaved = 0;
+            goal.nextDate = nextDateStr;
+            await Database.update('annualExpenses', goal);
+            AppState.annualExpenses = (AppState.annualExpenses || []).map(a => a.id === id ? goal : a);
+
+            updateAllUI();
+            toast(`💳 "${goal.name}" pagado (${fc(amount)}) · Próximo: ${nextDate.toLocaleDateString('gl-ES', { day: 'numeric', month: 'long', year: 'numeric' })}`);
+        }
+
         async function deleteAnnualExpense(id) {
             if (!confirm('Eliminar este gasto anual?')) return;
             await Database.remove('annualExpenses', id);
@@ -5889,6 +5972,7 @@
                         </div>
                         <div style="display:flex;gap:4px;">
                             ${!isReady ? `<button class="btn btn-secondary btn-icon" onclick="addAnnualSaving(${g.id})" title="Engadir reserva">+</button>` : ''}
+                            <button class="btn btn-success btn-icon" onclick="payAnnualExpense(${g.id})" title="Rexistrar pago real" style="font-size:0.75rem;">💳</button>
                             <button class="btn btn-secondary btn-icon" onclick="openAnnualModal(${g.id})" title="Editar">✎</button>
                             <button class="btn btn-danger btn-icon" onclick="deleteAnnualExpense(${g.id})">✕</button>
                         </div>
@@ -6218,10 +6302,12 @@
                     if ($('expensesCollapsible')?.style.display === 'block') updateExpensesList();
                     break;
                 case 'recurring':
-                    updateRecurringList();
-                    updateAnnualExpensesList();
-                    updateSavingsList();
-                    updateDebtsList();
+                    recalculateDailyAmounts().then(() => {
+                        updateRecurringList();
+                        updateAnnualExpensesList();
+                        updateSavingsList();
+                        updateDebtsList();
+                    });
                     break;
                 case 'analysis':
                     updateAnalysis();
@@ -10049,6 +10135,7 @@
             // Cargar configuración de app desde IndexedDB
             await loadAppConfig();
             // Detectar patrones y gastos frecuentes
+            await recalculateDailyAmounts();
             detectAdvancedPatterns();
             updateFrequentExpenses();
             // Limpar notificacións de máis de 7 días da BD
